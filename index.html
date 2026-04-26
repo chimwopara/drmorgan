@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Morgan | Architecting Leadership Intelligence</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#0f172a', // deep navy blue
+                            darker: '#0b1121',
+                            accent: '#f59e0b', // amber/orange
+                            accentHover: '#d97706',
+                            textMuted: '#94a3b8'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Dot Pattern for Hero Section */
+        .bg-dots {
+            background-color: #0b1121;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        
+        /* Smooth fade-in animations for scrolling */
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-800 antialiased bg-gray-50">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 transition-all duration-300 bg-brand-dark/95 backdrop-blur-md border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <a href="#home" class="flex items-center">
+                        <img src="logo.jpg" alt="Dr. Morgan Logo" class="h-12 w-auto object-contain rounded" onerror="this.src='https://placehold.co/200x60/111827/FFFFFF?text=Dr.Morgan'">
+                    </a>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#services" class="text-gray-300 hover:text-white transition-colors text-sm font-medium">Services</a>
+                    <a href="#about" class="text-gray-300 hover:text-white transition-colors text-sm font-medium">About</a>
+                    <a href="#contact" class="text-gray-300 hover:text-white transition-colors text-sm font-medium">Contact</a>
+                    <a href="#contact" class="bg-brand-accent hover:bg-brand-accentHover text-white px-5 py-2.5 rounded text-sm font-semibold transition-colors">
+                        Get Started
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" class="text-gray-300 hover:text-white focus:outline-none">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Panel -->
+        <div id="mobile-menu" class="hidden md:hidden bg-brand-dark border-t border-gray-800">
+            <div class="px-4 pt-2 pb-6 space-y-1">
+                <a href="#services" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800 rounded-md">Services</a>
+                <a href="#about" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800 rounded-md">About</a>
+                <a href="#contact" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800 rounded-md">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Section 1: Hero -->
+    <section id="home" class="relative min-h-screen flex items-center justify-center bg-dots pt-20">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 w-full relative z-10 py-20 lg:py-0">
+            <div class="max-w-4xl border-l border-gray-800 pl-8 lg:pl-12">
+                <!-- Subheading labels -->
+                <div class="flex flex-wrap items-center gap-3 text-brand-accent text-xs md:text-sm font-bold tracking-widest uppercase mb-6">
+                    <span>Leadership Systems</span>
+                    <span class="text-gray-600 hidden sm:inline">|</span>
+                    <span>Leadership Intelligence</span>
+                    <span class="text-gray-600 hidden sm:inline">|</span>
+                    <span>Global Futures</span>
+                </div>
+                
+                <!-- Main Headline -->
+                <h1 class="text-5xl md:text-6xl lg:text-7xl font-light text-white mb-6 leading-tight">
+                    Architecting <br>
+                    <span class="font-bold text-[#fdf6e3]">Leadership Intelligence</span>
+                </h1>
+                
+                <!-- Description -->
+                <p class="text-lg md:text-xl text-brand-textMuted mb-10 max-w-2xl leading-relaxed">
+                    Advancing leadership development, governance strategy, and institutional transformation for organizations, governments, and emerging leaders across continents.
+                </p>
+                
+                <!-- CTA Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 mb-20">
+                    <a href="#contact" class="inline-flex justify-center items-center px-8 py-4 bg-brand-accent hover:bg-brand-accentHover text-white font-semibold rounded transition-colors group">
+                        Begin Your Journey
+                        <i data-lucide="arrow-right" class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                    </a>
+                    <a href="#services" class="inline-flex justify-center items-center px-8 py-4 bg-white hover:bg-gray-100 text-brand-dark font-semibold rounded transition-colors">
+                        Explore Services
+                    </a>
+                </div>
+
+                <!-- Stats Footer -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pt-10 border-t border-gray-800">
+                    <div>
+                        <h3 class="text-3xl font-light text-white mb-1">Global</h3>
+                        <p class="text-brand-textMuted text-sm">Leadership Futurist</p>
+                    </div>
+                    <div>
+                        <h3 class="text-3xl font-light text-white mb-1">MD, Ph.D.</h3>
+                        <p class="text-brand-textMuted text-sm">Systems Architect</p>
+                    </div>
+                    <div>
+                        <h3 class="text-3xl font-light text-white mb-1">4 Continents</h3>
+                        <p class="text-brand-textMuted text-sm">Advisory Experience</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Services -->
+    <section id="services" class="py-24 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="mb-16">
+                <h3 class="text-brand-accent text-sm font-bold tracking-widest uppercase mb-2">Our Services</h3>
+                <h2 class="text-4xl md:text-5xl font-light text-brand-dark">
+                    Core Domains of <br><span class="font-bold">Expertise</span>
+                </h2>
+            </div>
+
+            <!-- Services Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="bg-white p-10 rounded-xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_25px_-5px_rgba(0,0,0,0.1)] transition-shadow border border-gray-100">
+                    <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mb-6">
+                        <i data-lucide="lightbulb" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-brand-dark mb-4">Leadership Intelligence (LQ)</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Next-generation leadership paradigm integrating foresight, authenticity, trust, people-centered influence, and regenerative change for complex systems.
+                    </p>
+                </div>
+                
+                <!-- Card 2 -->
+                <div class="bg-white p-10 rounded-xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_25px_-5px_rgba(0,0,0,0.1)] transition-shadow border border-gray-100">
+                    <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mb-6">
+                        <i data-lucide="compass" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-brand-dark mb-4">Global Leadership Systems Architecture</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Comprehensive systems-level frameworks for institutionalizing leadership development, intelligence, and governance continuity at organizational and national scales.
+                    </p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-white p-10 rounded-xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_25px_-5px_rgba(0,0,0,0.1)] transition-shadow border border-gray-100">
+                    <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mb-6">
+                        <i data-lucide="target" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-brand-dark mb-4">National & Institutional Leadership</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Strategic advisory for governments, institutions, and organizations developing sustainable leadership architectures across generations and geographies.
+                    </p>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="bg-white p-10 rounded-xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_25px_-5px_rgba(0,0,0,0.1)] transition-shadow border border-gray-100">
+                    <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mb-6">
+                        <i data-lucide="trending-up" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-brand-dark mb-4">Executive Governance Advisory</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Strategic counsel for executives, boards, and senior leaders across public, private, and civic leadership systems on governance and transformation.
+                    </p>
+                </div>
+
+                <!-- Card 5 -->
+                <div class="bg-white p-10 rounded-xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_25px_-5px_rgba(0,0,0,0.1)] transition-shadow border border-gray-100">
+                    <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mb-6">
+                        <i data-lucide="users" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-brand-dark mb-4">Healthcare Leadership & Systems</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Clinical and executive healthcare leadership advisory, health systems governance, and strategic transformation initiatives.
+                    </p>
+                </div>
+
+                <!-- Card 6 -->
+                <div class="bg-white p-10 rounded-xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_25px_-5px_rgba(0,0,0,0.1)] transition-shadow border border-gray-100">
+                    <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mb-6">
+                        <i data-lucide="award" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-brand-dark mb-4">Strategic Global Futures</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Foresight-driven strategic planning for complex, adaptive systems navigating long-term governance capacity and institutional design.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: About / Philosophy -->
+    <section id="about" class="py-24 bg-white overflow-hidden">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <!-- Image Side -->
+                <div class="w-full lg:w-5/12">
+                    <div class="relative rounded-2xl overflow-hidden shadow-2xl bg-gray-100 aspect-[4/5]">
+                        <img src="photos.jpg" alt="Dr. Ebere Morgan" class="absolute inset-0 w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'">
+                    </div>
+                </div>
+
+                <!-- Text Side -->
+                <div class="w-full lg:w-7/12">
+                    <h3 class="text-brand-accent text-sm font-bold tracking-widest uppercase mb-3">Leadership Philosophy</h3>
+                    <h2 class="text-4xl md:text-5xl font-light text-brand-dark mb-8 leading-tight">
+                        Leadership as a <span class="font-bold">Systemic, <br>Institutionalized Capability</span>
+                    </h2>
+                    
+                    <div class="space-y-6 text-gray-600 text-lg leading-relaxed mb-10">
+                        <p>
+                            Dr. Ebere Morgan is a global leadership futurist, governance strategist, and systems architect whose work addresses a defining question: How do complex systems—nations, governments, institutions, and organizations—intentionally develop leadership intelligence capable of sustaining trust, continuity, and transformative impact across generations and geographies?
+                        </p>
+                        <p>
+                            His leadership philosophy reframes leadership not as personality or position, but as a systemic, evidence-informed, and institutionalized capability. His work bridges scholarship and practice, combining systems thinking, leadership science, and real-world institutional design.
+                        </p>
+                    </div>
+
+                    <!-- Checklist -->
+                    <ul class="space-y-4 mb-12">
+                        <li class="flex items-start">
+                            <i data-lucide="check-circle" class="w-6 h-6 text-brand-accent mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span class="text-gray-700">Systems thinking and leadership science integration</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i data-lucide="check-circle" class="w-6 h-6 text-brand-accent mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span class="text-gray-700">Evidence-informed, institutionalized capability building</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i data-lucide="check-circle" class="w-6 h-6 text-brand-accent mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span class="text-gray-700">Cross-regional experience across academia, healthcare, and public institutions</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i data-lucide="check-circle" class="w-6 h-6 text-brand-accent mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span class="text-gray-700">Bridging cultural, institutional, and governance differences</span>
+                        </li>
+                    </ul>
+
+                    <!-- Signature / Credentials -->
+                    <div class="pt-8 border-t border-gray-200">
+                        <h4 class="text-xl font-bold text-brand-dark mb-1">Dr. Ebere Morgan, MD, Ph.D.</h4>
+                        <p class="text-gray-500 text-sm mb-2">CEO, Dr.Morgan • Founding Visionary, Leadership Impact for Transformation (LIFT)</p>
+                        <p class="text-gray-500 text-sm italic">Author, The 4th Dimension: The New Science of Leadership Intelligence</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: Testimonials -->
+    <section id="testimonials" class="py-24 bg-brand-dark relative overflow-hidden">
+        <!-- Background accents -->
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-brand-darker opacity-50 blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-blue-900/10 blur-3xl"></div>
+
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <!-- Left Title Area -->
+                <div class="w-full lg:w-5/12">
+                    <h3 class="text-brand-accent text-sm font-bold tracking-widest uppercase mb-3">Client Stories</h3>
+                    <h2 class="text-4xl md:text-5xl font-light text-white mb-10 leading-tight">
+                        Trusted by Executives, <br>
+                        <span class="font-bold">Institutions & <br>Governments</span>
+                    </h2>
+                    
+                    <!-- Navigation Controls -->
+                    <div class="flex gap-3">
+                        <button class="w-12 h-12 bg-white rounded flex items-center justify-center text-brand-dark hover:bg-gray-100 transition-colors">
+                            <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                        </button>
+                        <button class="w-12 h-12 bg-white rounded flex items-center justify-center text-brand-dark hover:bg-gray-100 transition-colors">
+                            <i data-lucide="chevron-right" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Quote Box -->
+                <div class="w-full lg:w-7/12">
+                    <div class="bg-white rounded-xl p-10 md:p-14 shadow-2xl relative">
+                        <!-- Quote Icon -->
+                        <div class="absolute top-10 left-10 text-orange-100 opacity-60">
+                            <svg width="60" height="60" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M14.017 18L14.017 10.609C14.017 4.905 17.748 1.039 23 0L23.995 2.151C21.563 3.068 20 5.789 20 8H24V18H14.017ZM0 18V10.609C0 4.905 3.748 1.038 9 0L9.996 2.151C7.563 3.068 6 5.789 6 8H9.983L9.983 18L0 18Z" />
+                            </svg>
+                        </div>
+                        
+                        <blockquote class="relative z-10 pt-8">
+                            <p class="text-xl md:text-2xl text-gray-600 font-light leading-relaxed mb-10">
+                                "Dr. Morgan's work on leadership intelligence has fundamentally transformed how we approach governance and institutional capacity. His systems-level frameworks provide clarity that bridges cultural and institutional differences."
+                            </p>
+                            <div class="flex items-center">
+                                <img src="https://i.pravatar.cc/150?img=47" alt="Client" class="w-14 h-14 rounded-full object-cover mr-4">
+                                <div>
+                                    <h4 class="font-bold text-brand-dark">Global Executive Leader</h4>
+                                    <p class="text-sm text-gray-500">Public Sector Institution, Africa</p>
+                                </div>
+                            </div>
+                        </blockquote>
+                    </div>
+                    
+                    <!-- Carousel Dots -->
+                    <div class="flex items-center gap-2 mt-6 ml-2">
+                        <div class="w-6 h-2 bg-brand-accent rounded-full"></div>
+                        <div class="w-2 h-2 bg-gray-600 rounded-full"></div>
+                        <div class="w-2 h-2 bg-gray-600 rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 5: Contact -->
+    <section id="contact" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="flex flex-col lg:flex-row gap-16">
+                <!-- Contact Info -->
+                <div class="w-full lg:w-5/12">
+                    <h2 class="text-4xl md:text-5xl font-light text-brand-dark mb-6 leading-tight">
+                        Ready to Transform <br>
+                        <span class="font-bold">Your Organization?</span>
+                    </h2>
+                    
+                    <p class="text-gray-600 text-lg leading-relaxed mb-12">
+                        Whether you're developing national leadership architectures, advancing institutional governance, or seeking strategic advisory on complex transformations, let's explore how leadership intelligence can drive sustainable impact.
+                    </p>
+
+                    <div class="space-y-8">
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mr-4 flex-shrink-0">
+                                <i data-lucide="mail" class="w-5 h-5"></i>
+                            </div>
+                            <div class="pt-1">
+                                <h4 class="font-bold text-brand-dark">Email</h4>
+                                <p class="text-gray-600">contact@drmorgan.com</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mr-4 flex-shrink-0">
+                                <i data-lucide="phone" class="w-5 h-5"></i>
+                            </div>
+                            <div class="pt-1">
+                                <h4 class="font-bold text-brand-dark">Phone</h4>
+                                <p class="text-gray-600">+1 (724) 400-0700</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mr-4 flex-shrink-0">
+                                <i data-lucide="map-pin" class="w-5 h-5"></i>
+                            </div>
+                            <div class="pt-1">
+                                <h4 class="font-bold text-brand-dark">Location</h4>
+                                <p class="text-gray-600">Dallas, Texas, USA</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Form -->
+                <div class="w-full lg:w-7/12">
+                    <div class="bg-white p-8 md:p-10 rounded-xl border border-gray-100 shadow-[0_4px_25px_-5px_rgba(0,0,0,0.05)]">
+                        <form action="#" method="POST" class="space-y-6">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                                <input type="text" id="name" name="name" placeholder="John Smith" class="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none transition-all">
+                            </div>
+                            
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                                <input type="email" id="email" name="email" placeholder="john@company.com" class="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none transition-all">
+                            </div>
+                            
+                            <div>
+                                <label for="company" class="block text-sm font-medium text-gray-700 mb-2">Company</label>
+                                <input type="text" id="company" name="company" placeholder="Company Name" class="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none transition-all">
+                            </div>
+                            
+                            <div>
+                                <label for="message" class="block text-sm font-medium text-gray-700 mb-2">How can we help?</label>
+                                <textarea id="message" name="message" rows="4" placeholder="Tell us about your leadership development goals..." class="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none transition-all resize-none"></textarea>
+                            </div>
+                            
+                            <button type="submit" class="w-full bg-brand-dark hover:bg-brand-darker text-white font-semibold py-4 px-6 rounded-md transition-colors flex items-center justify-center group">
+                                Send Inquiry
+                                <i data-lucide="arrow-right" class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-brand-darker border-t border-gray-800 py-8">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-gray-500 text-sm flex flex-col md:flex-row items-center gap-2 text-center md:text-left">
+                <span>&copy; <script>document.write(new Date().getFullYear())</script> Dr. Morgan. All rights reserved.</span>
+                <span class="hidden md:inline">|</span>
+                <span>Website by <a href="https://wopara.com" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors border-b border-gray-600 hover:border-white pb-0.5">Wopara Group</a></span>
+            </div>
+            <div class="flex gap-6 mt-2 md:mt-0">
+                <a href="#" class="text-gray-500 hover:text-white transition-colors text-sm">Privacy Policy</a>
+                <a href="#" class="text-gray-500 hover:text-white transition-colors text-sm">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Initialize Icons & Scripts -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Mobile Menu Toggle
+        const btn = document.getElementById('mobile-menu-button');
+        const menu = document.getElementById('mobile-menu');
+
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+        });
+
+        // Close mobile menu when clicking a link
+        const mobileLinks = menu.querySelectorAll('a');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                menu.classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>
