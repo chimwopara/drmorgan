@@ -248,8 +248,11 @@
 
   // Keep the floating help pill clear of the footer credit bar instead of
   // sitting on top of it once the user reaches the bottom of the page.
+  // The nudge lands on the BUTTON, never on .ask. The panel and scrim inside
+  // .ask are position:fixed, and any transform on their ancestor would make
+  // them resolve against .ask's own pill-sized box instead of the viewport.
   function askClearance() {
-    var ask = $(".ask"), bar = $(".footer__bottom");
+    var ask = $(".ask__btn"), bar = $(".footer__bottom");
     if (!ask || !bar) return;
     var tick = false;
     function up() {
@@ -993,7 +996,8 @@
         body = $("[data-ask-body]", root),
         form = $("[data-ask-form]", root),
         input = $("[data-ask-input]", root),
-        closeBtn = $("[data-ask-close]", root);
+        closeBtn = $("[data-ask-close]", root),
+        scrim = $("[data-ask-scrim]", root);
 
     var docs = null, idf = null, facts = null, loading = false;
     var STOP = ("a an and are as at be but by for from has have he her his i in into is it its of on or that the " +
@@ -1269,13 +1273,79 @@
 
     var busy = false;
 
+    /* ---- viewport plumbing ------------------------------------------------
+       position:fixed resolves against the LAYOUT viewport, which on iOS does
+       not shrink when the keyboard appears — the keyboard simply covers the
+       bottom of the screen, and with it the sheet's input and its last few
+       messages. visualViewport reports what is actually on screen, so the
+       sheet is sized and lifted from that instead.
+       --------------------------------------------------------------------- */
+    var vv = window.visualViewport;
+
+    function syncViewport() {
+      if (!vv) return;
+      // What the keyboard (or any other browser chrome) is covering at the foot
+      var covered = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+      root.style.setProperty("--ask-vh", Math.round(vv.height) + "px");
+      root.style.setProperty("--ask-kb", covered + "px");
+    }
+
+    if (vv) {
+      vv.addEventListener("resize", syncViewport);
+      vv.addEventListener("scroll", syncViewport);
+    }
+
+    function toBottom() { body.scrollTop = body.scrollHeight; }
+
+    // Keeping the newest message in view is the whole point of resizing the
+    // sheet, so follow every viewport change with a scroll to the foot.
+    if (vv) vv.addEventListener("resize", function () {
+      if (root.classList.contains("is-open")) setTimeout(toBottom, 60);
+    });
+
+    /* ---- open / close ---------------------------------------------------- */
+    var lastFocus = null, lockY = 0;
+
+    // overflow:hidden alone does not hold iOS Safari, and a page that keeps
+    // scrolling under a sheet is the clearest tell that it isn't a real one.
+    // The fixed-body lock is confined to sheet mode: on desktop it would also
+    // collapse the scrollbar and shift the whole page behind the drawer.
+    function lockScroll(on) {
+      var b = document.body;
+      if (on) {
+        lockY = window.scrollY || 0;
+        b.classList.add("is-locked");
+        if (sheetMode()) { b.style.top = -lockY + "px"; b.classList.add("is-sheetlocked"); }
+      } else {
+        b.classList.remove("is-locked");
+        if (b.classList.contains("is-sheetlocked")) {
+          b.classList.remove("is-sheetlocked");
+          b.style.top = "";
+          window.scrollTo(0, lockY);
+        }
+      }
+    }
+
     function open(state) {
+      var was = root.classList.contains("is-open");
+      if (state === was) { if (!state) lockScroll(false); return; }
       root.classList.toggle("is-open", state);
       btn.setAttribute("aria-expanded", String(state));
       panel.setAttribute("aria-hidden", String(!state));
+      lockScroll(state);
+
       if (state) {
+        syncViewport();
+        lastFocus = document.activeElement;
         load().then(function () { if (!body.childNodes.length) greet(); });
-        setTimeout(function () { input.focus(); }, 380);
+        // On touch, focusing here would throw the keyboard up over a sheet the
+        // reader has not looked at yet. Let the tap on the field ask for it.
+        if (!coarse) setTimeout(function () { input.focus(); }, 380);
+      } else {
+        panel.style.transform = "";
+        root.style.removeProperty("--ask-kb");
+        if (lastFocus && lastFocus.focus) lastFocus.focus();
+        lastFocus = null;
       }
     }
 
@@ -1284,10 +1354,67 @@
       open(!root.classList.contains("is-open"));
     });
     if (closeBtn) closeBtn.addEventListener("click", function () { open(false); });
+    if (scrim) scrim.addEventListener("click", function () { open(false); });
     addEventListener("keydown", function (e) { if (e.key === "Escape" && root.classList.contains("is-open")) open(false); });
     document.addEventListener("click", function (e) {
       if (root.classList.contains("is-open") && !root.contains(e.target)) open(false);
     });
+
+    // A dialog that covers the page has to hold focus, or Tab walks off into
+    // the page underneath it while the scrim says that page is unavailable.
+    panel.addEventListener("keydown", function (e) {
+      if (e.key !== "Tab") return;
+      var f = panel.querySelectorAll("button, [href], input, textarea, select, [tabindex]:not([tabindex='-1'])");
+      var vis = [];
+      for (var i = 0; i < f.length; i++) if (f[i].offsetParent !== null) vis.push(f[i]);
+      if (!vis.length) return;
+      var first = vis[0], last = vis[vis.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+
+    /* ---- drag the sheet down to dismiss ----------------------------------- */
+    // Phones only: on the desktop drawer there is nothing below to drag toward.
+    var drag = null;
+    function sheetMode() { return window.matchMedia("(max-width: 767.98px)").matches; }
+
+    // Only the handle and the title bar are draggable. Arming the whole panel
+    // meant a swipe that began on a chip or in the input dragged the sheet
+    // away instead of doing what the reader touched.
+    var grip = panel.querySelector(".ask__grab"), head = panel.querySelector(".ask__head");
+
+    function fromGrip(t) {
+      if (grip && (t === grip || grip.contains(t))) return true;
+      if (head && head.contains(t) && !(closeBtn && closeBtn.contains(t))) return true;
+      return false;
+    }
+
+    function dragStart(e) {
+      if (!sheetMode() || !root.classList.contains("is-open") || e.button) return;
+      if (!fromGrip(e.target)) return;
+      drag = { y: e.clientY, t: Date.now(), dy: 0 };
+      root.classList.add("is-dragging");
+      if (panel.setPointerCapture) { try { panel.setPointerCapture(e.pointerId); } catch (err) {} }
+    }
+    function dragMove(e) {
+      if (!drag) return;
+      drag.dy = Math.max(0, e.clientY - drag.y);      // downward only
+      panel.style.transform = "translateY(" + drag.dy + "px)";
+    }
+    function dragEnd() {
+      if (!drag) return;
+      var far = drag.dy > panel.offsetHeight * 0.28;
+      var fast = drag.dy > 48 && (Date.now() - drag.t) < 280;
+      root.classList.remove("is-dragging");
+      panel.style.transform = "";
+      if (far || fast) open(false);
+      drag = null;
+    }
+
+    panel.addEventListener("pointerdown", dragStart);
+    panel.addEventListener("pointermove", dragMove);
+    panel.addEventListener("pointerup", dragEnd);
+    panel.addEventListener("pointercancel", dragEnd);
 
     form.addEventListener("submit", function (e) { e.preventDefault(); send(input.value); });
 

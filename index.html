@@ -56,8 +56,9 @@
  "founder":{"@id":"https://drmorgan.ai/#person"},
  "address":{"@type":"PostalAddress","addressLocality":"Dallas","addressRegion":"TX","addressCountry":"US"},
  "contactPoint":{"@type":"ContactPoint","contactType":"Strategic inquiries","email":"drmorgan@drmorgan.ai","telephone":"+1-724-400-0700"}},
+{"@type":"Organization","@id":"https://drmorgan.ai/#publisher","name":"Wopara Group","url":"https://wopara.com"},
 {"@type":"WebSite","@id":"https://drmorgan.ai/#site","url":"https://drmorgan.ai/","name":"DRMORGAN.AI",
- "publisher":{"@id":"https://drmorgan.ai/#org"},"inLanguage":"en"},
+ "publisher":{"@id":"https://drmorgan.ai/#publisher"},"about":{"@id":"https://drmorgan.ai/#person"},"inLanguage":"en"},
 {"@type":"ProfessionalService","name":"Strategic Advisory & Institutional Architecture",
  "provider":{"@id":"https://drmorgan.ai/#person"},"areaServed":"Worldwide",
  "hasOfferCatalog":{"@type":"OfferCatalog","name":"Advisory domains","itemListElement":[
@@ -789,7 +790,9 @@
 </footer>
 
 <div class="ask" data-ask>
-  <div class="ask__panel" data-ask-panel role="dialog" aria-label="Get help with this site" aria-hidden="true">
+  <div class="ask__scrim" data-ask-scrim></div>
+  <div class="ask__panel" data-ask-panel role="dialog" aria-modal="true" aria-label="Get help with this site" aria-hidden="true">
+    <span class="ask__grab" aria-hidden="true"></span>
     <div class="ask__head">
       <p>Get Help</p>
       <h2>Ask about the work</h2>
