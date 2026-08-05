@@ -1930,25 +1930,20 @@ a.pill:hover::after { background: linear-gradient(100deg, rgba(32,32,32,.94), rg
   color: var(--graphite);
   animation: bootOut .55s var(--ease-io) 1.45s forwards;
 }
-.boot__in { display: grid; justify-items: center; gap: 1.1rem; }
+.boot__in { display: grid; justify-items: center; gap: 1.35rem; }
 
-.boot__mark { width: clamp(3.4rem, 6vw, 4.4rem); height: auto; overflow: visible; }
-.boot__box {
-  stroke-width: 1.4;
-  stroke-dasharray: 164; stroke-dashoffset: 164;
-  animation: bootBox 1s var(--ease) .1s forwards;
+/* Supplied wordmark, swapped by ground exactly like the header mark:
+   black artwork on the paper ground, silver artwork on the dark ground. */
+.boot__logo {
+  display: block;
+  width: auto;
+  height: clamp(2.1rem, 4.4vw, 3rem);
+  opacity: 0;
+  animation: bootRise .72s var(--ease) .12s forwards;
 }
-.boot__mark text { opacity: 0; animation: bootFade .5s var(--ease) .62s forwards; }
-
-.boot__word {
-  display: flex; align-items: baseline; gap: .35rem;
-  font-family: var(--font-display);
-  font-size: clamp(1.05rem, 1.6vw, 1.3rem);
-  letter-spacing: .06em; line-height: 1;
-  opacity: 0; animation: bootRise .6s var(--ease) .78s forwards;
-}
-.boot__word i { font-style: normal; font-weight: 600; }
-.boot__word b { font-weight: 400; font-size: .78em; letter-spacing: .11em; }
+.boot__logo--ondark { display: none; }
+:root[data-theme="dark"] .boot__logo--onlight { display: none; }
+:root[data-theme="dark"] .boot__logo--ondark { display: block; }
 
 .boot__bar {
   display: block; width: clamp(5rem, 9vw, 7rem); height: 2px;
@@ -1961,9 +1956,7 @@ a.pill:hover::after { background: linear-gradient(100deg, rgba(32,32,32,.94), rg
   animation: bootBar 1.15s var(--ease) .2s forwards;
 }
 
-@keyframes bootBox  { to { stroke-dashoffset: 0; } }
-@keyframes bootFade { to { opacity: 1; } }
-@keyframes bootRise { from { opacity: 0; transform: translateY(.5rem); } to { opacity: 1; transform: none; } }
+@keyframes bootRise { from { opacity: 0; transform: translateY(.5rem) scale(.985); } to { opacity: 1; transform: none; } }
 @keyframes bootBar  { to { width: 100%; } }
 @keyframes bootOut  { to { opacity: 0; visibility: hidden; pointer-events: none; } }
 
@@ -2846,6 +2839,16 @@ html.is-theming :is(
 main > :is(.surface-paper-2, .surface-paper-3):last-child {
   border-bottom-left-radius: var(--r-xl);
   border-bottom-right-radius: var(--r-xl);
+}
+
+/* Insights — the constellation band is the argument the whole page has been
+   building to, so it stands apart: a gap above and below lifts it off the two
+   dark sections it sits between and lets it read as its own card rather than
+   another course in the stack. Both neighbours already round off against a
+   paper sibling, so the gap opens onto finished edges. */
+#how-the-ideas-connect {
+  margin-block: clamp(1.5rem, 3vw, 2.75rem);
+  border-radius: var(--r-xl);
 }
 
 @media (max-width: 620px) {
