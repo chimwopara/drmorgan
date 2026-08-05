@@ -1452,6 +1452,14 @@ main > .phero:last-child {
 .ask.is-dragging .ask__panel { transition: none; }
 .ask.is-dragging .ask__scrim { transition: opacity .1s linear; }
 
+/* A sheet that travels the height of the screen is exactly the motion this
+   query is asking us not to make. Arrive by fading instead. */
+@media (prefers-reduced-motion: reduce) {
+  .ask__panel { transform: none; transition: opacity .2s linear, visibility .2s; }
+  .ask.is-open .ask__panel { transform: none; }
+  .ask__scrim { transition: opacity .2s linear, visibility .2s; }
+}
+
 /* The pill IS the sheet once it opens, so it steps out of the way rather than
    sitting under the scrim. Opacity only — askClearance owns its transform. */
 .ask.is-open .ask__btn { opacity: 0; visibility: hidden; pointer-events: none; }

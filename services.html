@@ -34,7 +34,12 @@
 <script>try{if(sessionStorage.getItem("dm-booted"))document.documentElement.className+=" booted";else sessionStorage.setItem("dm-booted","1")}catch(e){}</script>
 <script>try{var t=localStorage.getItem("dm-theme");if(t!=="dark"&&t!=="light")t="light";document.documentElement.setAttribute("data-theme",t);if(t==="dark"){var m=document.querySelector('meta[name="theme-color"]');if(m)m.content="#0C1421"}}catch(e){}</script>
 <link rel="preload" as="image" href="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1800&h=1200&q=70" fetchpriority="high">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://drmorgan.ai/"},{"@type":"ListItem","position":2,"name":"Services","item":"https://drmorgan.ai/services.html"}]}</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+{"@type":"Organization","@id":"https://wopara.com/#org","name":"Wopara Group","url":"https://wopara.com/"},
+{"@type":"WebPage","@id":"https://drmorgan.ai/services.html","url":"https://drmorgan.ai/services.html","name":"Services","isPartOf":{"@id":"https://drmorgan.ai/#site"},"publisher":{"@id":"https://wopara.com/#org"},"inLanguage":"en"},
+{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://drmorgan.ai/"},{"@type":"ListItem","position":2,"name":"Services","item":"https://drmorgan.ai/services.html"}]}]}
+</script>
 </head>
 <body>
 <div class="boot" aria-hidden="true">
@@ -352,7 +357,7 @@
       <a href="https://www.linkedin.com/in/eberemorgan" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm6 0h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95C20.6 8.75 22 11 22 14.3V21h-4v-6c0-1.6-.03-3.66-2.25-3.66-2.25 0-2.6 1.74-2.6 3.54V21H9V9Z"/></svg></a>
       <a href="mailto:drmorgan@drmorgan.ai" aria-label="Email"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.15" aria-hidden="true"><path d="M2.5 4.5h15v11h-15z"/><path d="m2.5 4.5 7.5 5.6 7.5-5.6"/></svg></a>
     </div>
-    <p><a href="https://wopara.com" target="_blank" rel="noopener noreferrer">Website by Wopara Group</a></p>
+    <p><a href="https://wopara.com" target="_blank" rel="noopener">Website by Wopara Group</a></p>
   </div>
   <p class="footer__ghost" aria-hidden="true">DRMORGAN</p>
 </footer>
