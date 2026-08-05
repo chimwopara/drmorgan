@@ -1,593 +1,817 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dr. Morgan | Architecting Leadership Intelligence</title>
-    
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="Dr. Ebere Morgan is a global leadership futurist, governance strategist, and systems architect advancing leadership development for organizations, governments, and emerging leaders.">
-    <meta name="keywords" content="Leadership Intelligence, Governance Strategy, Systems Architect, Dr. Ebere Morgan, Global Futures, Executive Advisory, Institutional Leadership">
-    <meta name="author" content="Dr. Ebere Morgan">
-    <meta name="robots" content="index, follow">
-    
-    <!-- JSON-LD Structured Data for SEO -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Person",
-      "name": "Dr. Ebere Morgan",
-      "jobTitle": "Global Leadership Futurist & Systems Architect",
-      "url": "https://drmorgan.com",
-      "image": "https://drmorgan.com/photos.jpg",
-      "description": "Advancing leadership development, governance strategy, and institutional transformation for organizations, governments, and emerging leaders across continents."
-    }
-    </script>
-
-    <!-- Favicon -->
-    <link rel="icon" href="logo.jpg" type="image/jpeg">
-    
-    <!-- Open Graph / Link Share Preview -->
-    <meta property="og:title" content="Dr. Morgan | Architecting Leadership Intelligence">
-    <meta property="og:description" content="Advancing leadership development, governance strategy, and institutional transformation.">
-    <meta property="og:image" content="logo.jpg">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Dr. Morgan | Architecting Leadership Intelligence">
-    <meta name="twitter:image" content="logo.jpg">
-
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            dark: '#0f172a', // deep navy blue
-                            darker: '#0b1121',
-                            accent: '#f59e0b', // amber/orange
-                            accentHover: '#d97706',
-                            textMuted: '#94a3b8'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        /* Custom Dot Pattern for Hero Section */
-        .bg-dots {
-            background-color: #0b1121;
-            background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-            background-size: 40px 40px;
-        }
-        
-        /* Smooth fade-in animations for scrolling */
-        .fade-in-up {
-            animation: fadeInUp 0.8s ease-out forwards;
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        @keyframes fadeInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dr. Morgan | Global Leadership Futurist, Systems Strategist, Institutional Architect</title>
+<meta name="description" content="Leadership was never meant to be accidental. Dr. Morgan builds leadership ecosystems, institutional frameworks and transformational architectures for governments, universities and enterprises.">
+<meta name="author" content="Dr. Ebere Morgan">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#F2F6FB">
+<link rel="canonical" href="https://drmorgan.ai/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DRMORGAN.AI">
+<meta property="og:title" content="Dr. Morgan | Global Leadership Futurist, Systems Strategist, Institutional Architect">
+<meta property="og:description" content="Leadership was never meant to be accidental. Dr. Morgan builds leadership ecosystems, institutional frameworks and transformational architectures for governments, universities and enterprises.">
+<meta property="og:url" content="https://drmorgan.ai/">
+<meta property="og:image" content="https://drmorgan.ai/assets/headerlogo.png">
+<meta property="og:image:width" content="1824">
+<meta property="og:image:height" content="862">
+<meta property="og:image:alt" content="DrMorgan">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Dr. Morgan | Global Leadership Futurist, Systems Strategist, Institutional Architect">
+<meta name="twitter:image" content="https://drmorgan.ai/assets/headerlogo.png">
+<link rel="icon" href="assets/img/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="assets/img/favicon-192.png" sizes="192x192" type="image/png">
+<link rel="icon" href="assets/img/favicon-512.png" sizes="512x512" type="image/png">
+<link rel="apple-touch-icon" href="assets/img/favicon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..600,0..100,0..1&family=Instrument+Sans:ital,wdth,wght@0,75..100,400..600;1,75..100,400..500&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/site.css">
+<script>try{if(sessionStorage.getItem("dm-booted"))document.documentElement.className+=" booted";else sessionStorage.setItem("dm-booted","1")}catch(e){}</script>
+<script>try{var t=localStorage.getItem("dm-theme");if(t!=="dark"&&t!=="light")t="light";document.documentElement.setAttribute("data-theme",t);if(t==="dark"){var m=document.querySelector('meta[name="theme-color"]');if(m)m.content="#0C1421"}}catch(e){}</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+{"@type":"Person","@id":"https://drmorgan.ai/#person","name":"Ebere Morgan","alternateName":["Dr. Morgan","Dr. Ebere Morgan"],
+ "honorificSuffix":"Ph.D.","jobTitle":"Leadership Futurist, Systems Strategist & Institutional Architect",
+ "url":"https://drmorgan.ai/","image":"https://drmorgan.ai/photos.jpg","email":"drmorgan@drmorgan.ai",
+ "telephone":"+1-724-400-0700",
+ "address":{"@type":"PostalAddress","addressLocality":"Dallas","addressRegion":"TX","addressCountry":"US"},
+ "alumniOf":{"@type":"CollegeOrUniversity","name":"Carolina University"},
+ "worksFor":{"@id":"https://drmorgan.ai/#org"},
+ "sameAs":["https://www.linkedin.com/in/eberemorgan"],
+ "knowsAbout":["Leadership Intelligence","Leadership Systems","Leadership Futures","Institutional Architecture",
+   "Strategic Foresight","Organizational Transformation","Governance","Succession Planning","Executive Advisory"],
+ "memberOf":[{"@type":"Organization","name":"International Leadership Association"},
+   {"@type":"Organization","name":"American College of Healthcare Executives"},
+   {"@type":"Organization","name":"Association of Leadership Educators"},
+   {"@type":"Organization","name":"Canadian College of Health Leaders"},
+   {"@type":"Organization","name":"Association of Career Professionals International"},
+   {"@type":"Organization","name":"American Management Association"}]},
+{"@type":"Organization","@id":"https://drmorgan.ai/#org","name":"LIFT Global, Inc.",
+ "alternateName":"Leadership Impact For Transformation","url":"https://drmorgan.ai/","logo":"https://drmorgan.ai/assets/headerlogo.png",
+ "founder":{"@id":"https://drmorgan.ai/#person"},
+ "address":{"@type":"PostalAddress","addressLocality":"Dallas","addressRegion":"TX","addressCountry":"US"},
+ "contactPoint":{"@type":"ContactPoint","contactType":"Strategic inquiries","email":"drmorgan@drmorgan.ai","telephone":"+1-724-400-0700"}},
+{"@type":"WebSite","@id":"https://drmorgan.ai/#site","url":"https://drmorgan.ai/","name":"DRMORGAN.AI",
+ "publisher":{"@id":"https://drmorgan.ai/#org"},"inLanguage":"en"},
+{"@type":"ProfessionalService","name":"Strategic Advisory & Institutional Architecture",
+ "provider":{"@id":"https://drmorgan.ai/#person"},"areaServed":"Worldwide",
+ "hasOfferCatalog":{"@type":"OfferCatalog","name":"Advisory domains","itemListElement":[
+  {"@type":"Offer","itemOffered":{"@type":"Service","name":"Leadership Intelligence Advisory"}},
+  {"@type":"Offer","itemOffered":{"@type":"Service","name":"Institutional Systems Design"}},
+  {"@type":"Offer","itemOffered":{"@type":"Service","name":"Executive Strategy & Transformation"}},
+  {"@type":"Offer","itemOffered":{"@type":"Service","name":"Leadership Formation & Capability Development"}},
+  {"@type":"Offer","itemOffered":{"@type":"Service","name":"Strategic Foresight & Leadership Futures"}},
+  {"@type":"Offer","itemOffered":{"@type":"Service","name":"National Leadership Infrastructure"}},
+  {"@type":"Offer","itemOffered":{"@type":"Service","name":"Executive Forums & Global Conversations"}}]}}
+]}
+</script>
+<link rel="preload" as="image" href="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1400&h=1800&q=70" fetchpriority="high">
 </head>
-<body class="font-sans text-gray-800 antialiased bg-gray-50">
+<body>
+<div class="boot" aria-hidden="true">
+  <div class="boot__in">
+    <svg class="boot__mark" viewBox="0 0 44 44" fill="none" aria-hidden="true">
+      <path class="boot__box" d="M1.5 1.5 H42.5 V42.5 H1.5 Z" stroke="currentColor"/>
+      <text x="22" y="28.5" text-anchor="middle" font-family="Fraunces, Newsreader, serif" font-size="15" fill="currentColor">DM</text>
+    </svg>
+    <span class="boot__word"><i>Dr</i><b>MORGAN</b></span>
+    <span class="boot__bar"><i></i></span>
+  </div>
+</div>
+<a class="skip" href="#main">Skip to content</a>
+<div class="curtain is-in" data-curtain aria-hidden="true"><i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i><i style="--i:3"></i><i style="--i:4"></i><img class="curtain__mark" src="assets/img/favicon-192.png" alt="" width="192" height="192" decoding="async"></div>
+<div class="progress" data-progress aria-hidden="true"><i></i></div>
 
-    <!-- Navigation -->
-    <nav class="fixed w-full z-50 transition-all duration-300 bg-brand-dark/95 backdrop-blur-md border-b border-gray-800">
-        <div class="max-w-7xl mx-auto px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
-                <!-- Logo -->
-                <div class="flex-shrink-0">
-                    <a href="#home" class="flex items-center">
-                        <img src="logo.jpg" alt="Dr. Morgan Logo" class="h-12 w-auto object-contain rounded" onerror="this.src='https://placehold.co/200x60/111827/FFFFFF?text=Dr.Morgan'">
-                    </a>
-                </div>
-                
-                <!-- Desktop Menu -->
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="#services" class="text-gray-300 hover:text-white transition-colors text-sm font-medium">Services</a>
-                    <a href="#about" class="text-gray-300 hover:text-white transition-colors text-sm font-medium">About</a>
-                    <a href="#contact" class="text-gray-300 hover:text-white transition-colors text-sm font-medium">Contact</a>
-                    <a href="#contact" class="bg-brand-accent hover:bg-brand-accentHover text-white px-5 py-2.5 rounded text-sm font-semibold transition-colors">
-                        Get Started
-                    </a>
-                </div>
-
-                <!-- Mobile Menu Button -->
-                <div class="md:hidden flex items-center">
-                    <button id="mobile-menu-button" class="text-gray-300 hover:text-white focus:outline-none">
-                        <i data-lucide="menu" class="w-6 h-6"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mobile Menu Panel -->
-        <div id="mobile-menu" class="hidden md:hidden bg-brand-dark border-t border-gray-800">
-            <div class="px-4 pt-2 pb-6 space-y-1">
-                <a href="#services" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800 rounded-md">Services</a>
-                <a href="#about" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800 rounded-md">About</a>
-                <a href="#contact" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800 rounded-md">Contact</a>
-            </div>
-        </div>
+<header class="header" data-header>
+  <div class="shell header__bar">
+    <div class="header__pod header__pod--mark">
+    <a class="mark" href="index.html" aria-label="Dr. Morgan, home"><img class="mark__img mark__img--onlight" src="assets/img/headerlogo-dark.png" alt="Dr Morgan" width="560" height="150" decoding="async"><img class="mark__img mark__img--ondark" src="assets/img/headerlogo-light.png" alt="" aria-hidden="true" width="560" height="150" decoding="async"></a></div>
+    <nav class="nav header__pod" aria-label="Primary">
+      <a class="nav__link is-current" href="index.html" aria-current="page"><svg class="nvi" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2.5 5.2 8 2l5.5 3.2v6.1L8 14.5 2.5 11.3z"/><path d="M8 8.4v6.1M8 8.4 2.6 5.3M8 8.4l5.4-3.1"/></svg><span>Home</span></a>
+      <a class="nav__link" href="about.html"><svg class="nvi" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1.6 11.4c2-3.6 3.4-5.4 4.5-5.4 1.6 0 1.7 4 3.3 4 1.2 0 2.4-1.7 5-5.8"/><path d="M1.6 14.2h12.8"/></svg><span>About</span></a>
+      <a class="nav__link" href="services.html"><svg class="nvi" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 3.6h12M2 8h8M2 12.4h5"/><path d="M14 8h-1.6M8.6 12.4H7"/></svg><span>Services</span></a>
+      <a class="nav__link" href="methodology.html"><svg class="nvi" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1.8 12.6a6.6 6.6 0 0 1 12.4 0"/><path d="M8 12.6 11.6 6"/><path d="M2.9 9.1l.9.5M13.1 9.1l-.9.5M8 6.1v1"/></svg><span>Methodology</span></a>
+      <a class="nav__link" href="insights.html"><svg class="nvi" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1.4 8h2.2l1.5-4.4L7.7 12l2-6.2 1.3 2.2h3.6"/></svg><span>Insights</span></a>
+      <a class="nav__link" href="codex.html"><svg class="nvi" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4.2 2.2h8.2v11.6H4.2z"/><path d="M4.2 2.2a1.9 1.9 0 0 0-1.9 1.9v7.8a1.9 1.9 0 0 1 1.9-1.9"/><path d="M6.6 5.4h3.6M6.6 7.8h3.6"/></svg><span>Codex</span></a>
+      <a class="nav__link" href="engage.html"><svg class="nvi" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 11.2c2.6 0 4.2-1.4 4.2-3.4S4.8 4.6 2.6 4.8"/><path d="M14 4.8c-2.6 0-4.2 1.4-4.2 3.4s1.4 3.2 3.6 3"/></svg><span>Engage</span></a>
     </nav>
+    <div class="header__pod header__pod--cta"><a class="btn btn--ghost header__cta" href="engage.html#inquiry" data-magnetic>Inquire<svg class="ico ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.15" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></a></div>
+    <button class="burger" data-burger aria-label="Open menu" aria-expanded="false" aria-controls="site-menu"><i></i><i></i><i></i></button>
+  </div>
+</header>
 
-    <!-- Section 1: Hero -->
-    <section id="home" class="relative min-h-screen flex items-center justify-center bg-dots pt-20">
-        <div class="max-w-7xl mx-auto px-6 lg:px-8 w-full relative z-10 py-20 lg:py-0">
-            <div class="max-w-4xl border-l border-gray-800 pl-8 lg:pl-12">
-                <!-- Subheading labels -->
-                <div class="flex flex-wrap items-center gap-3 text-brand-accent text-xs md:text-sm font-bold tracking-widest uppercase mb-6">
-                    <span>Leadership Systems</span>
-                    <span class="text-gray-600 hidden sm:inline">|</span>
-                    <span>Leadership Intelligence</span>
-                    <span class="text-gray-600 hidden sm:inline">|</span>
-                    <span>Global Futures</span>
-                </div>
-                
-                <!-- Main Headline -->
-                <h1 class="text-5xl md:text-6xl lg:text-7xl font-light text-white mb-6 leading-tight">
-                    Architecting <br>
-                    <span class="font-bold text-[#fdf6e3]">Leadership Intelligence</span>
-                </h1>
-                
-                <!-- Description -->
-                <p class="text-lg md:text-xl text-brand-textMuted mb-10 max-w-2xl leading-relaxed">
-                    Advancing leadership development, governance strategy, and institutional transformation for organizations, governments, and emerging leaders across continents.
-                </p>
-                
-                <!-- CTA Buttons -->
-                <div class="flex flex-col sm:flex-row gap-4 mb-20">
-                    <a href="#contact" class="inline-flex justify-center items-center px-8 py-4 bg-brand-accent hover:bg-brand-accentHover text-white font-semibold rounded transition-colors group">
-                        Begin Your Journey
-                        <i data-lucide="arrow-right" class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
-                    </a>
-                    <a href="#services" class="inline-flex justify-center items-center px-8 py-4 bg-white hover:bg-gray-100 text-brand-dark font-semibold rounded transition-colors">
-                        Explore Services
-                    </a>
-                </div>
+<div class="menu" id="site-menu" data-menu aria-hidden="true">
+  <div class="menu__card">
+    <nav class="menu__wrap" aria-label="Mobile"><ul>
+      <li class="menu__item"><a class="menu__link" style="--i:0" href="index.html"><span class="menu__num">01</span>Home</a></li>
+      <li class="menu__item"><a class="menu__link" style="--i:1" href="about.html"><span class="menu__num">02</span>About</a></li>
+      <li class="menu__item"><a class="menu__link" style="--i:2" href="services.html"><span class="menu__num">03</span>Services</a></li>
+      <li class="menu__item"><a class="menu__link" style="--i:3" href="methodology.html"><span class="menu__num">04</span>Methodology</a></li>
+      <li class="menu__item"><a class="menu__link" style="--i:4" href="insights.html"><span class="menu__num">05</span>Insights</a></li>
+      <li class="menu__item"><a class="menu__link" style="--i:5" href="codex.html"><span class="menu__num">06</span>Codex</a></li>
+      <li class="menu__item"><a class="menu__link" style="--i:6" href="engage.html"><span class="menu__num">07</span>Engage</a></li>
+    </ul></nav>
+    <div class="menu__wrap menu__actions">
+      <button class="menu__act" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch to dark mode">
+        <span class="themetoggle__ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle class="tt-sun" cx="12" cy="12" r="4"/>
+            <g class="tt-rays"><path d="M12 2.4v2.1M12 19.5v2.1M2.4 12h2.1M19.5 12h2.1M5.2 5.2l1.5 1.5M17.3 17.3l1.5 1.5M18.8 5.2l-1.5 1.5M6.7 17.3l-1.5 1.5"/></g>
+            <path class="tt-moon" d="M20.6 14.8A8.7 8.7 0 0 1 9.2 3.4a8.7 8.7 0 1 0 11.4 11.4Z"/>
+          </svg>
+        </span>
+        <span class="themetoggle__lbl">Dark</span>
+      </button>
+      <button class="menu__act" type="button" data-menu-ask aria-label="Open the site assistant">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M13.7 9.5a1.9 1.9 0 0 1-1.9 1.9H6L2.3 13.9V4.3a1.9 1.9 0 0 1 1.9-1.9h7.6a1.9 1.9 0 0 1 1.9 1.9z"/>
+          <path d="M5.4 5.9h5.2M5.4 8.3h3.2"/>
+        </svg>
+        <span>Get Help</span>
+      </button>
+    </div>
+    <div class="menu__wrap menu__foot">
+      <a href="mailto:drmorgan@drmorgan.ai">drmorgan@drmorgan.ai</a>
+      <a href="https://www.linkedin.com/in/eberemorgan" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      <span>Intelligence &#183; Excellence &#183; Transcendence</span>
+    </div>
+  </div>
+  <button class="menu__dismiss" type="button" data-menu-close aria-label="Close menu">
+    <span class="menu__tap">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 14.5 12 8.5l6 6"/></svg>
+      <em>tap here to go back</em>
+    </span>
+  </button>
+</div>
 
-                <!-- Stats Footer -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pt-10 border-t border-gray-800">
-                    <div>
-                        <h3 class="text-3xl font-light text-white mb-1">Global</h3>
-                        <p class="text-brand-textMuted text-sm">Leadership Futurist</p>
-                    </div>
-                    <div>
-                        <h3 class="text-3xl font-light text-white mb-1">MD, Ph.D.</h3>
-                        <p class="text-brand-textMuted text-sm">Systems Architect</p>
-                    </div>
-                    <div>
-                        <h3 class="text-3xl font-light text-white mb-1">4 Continents</h3>
-                        <p class="text-brand-textMuted text-sm">Advisory Experience</p>
-                    </div>
-                </div>
-            </div>
+<main id="main">
+
+<div class="hero-wrap">
+<section class="hero" data-hero aria-label="Manifesto" id="leadership-was-never-meant-to-be-accidental">
+  <div class="hero__left">
+    <div class="hero__acts">
+
+      <article class="act" data-act aria-hidden="true">
+        <span class="act__phase">The Manifest</span>
+        <h1 class="act__title" data-split>Leadership Was Never Meant to Be Accidental.</h1>
+        <p class="act__sub">Exploring the future of leadership, systems intelligence, and institutional transformation.</p>
+        <div class="act__cta">
+          <a class="btn" href="about.html" data-magnetic>Discover the Vision<svg class="ico ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.15" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></a>
+          <a class="btn btn--ghost" href="engage.html" data-magnetic>Initiate Engagement</a>
         </div>
-    </section>
-
-    <!-- Section 2: Services -->
-    <section id="services" class="py-24 bg-gray-50">
-        <div class="max-w-7xl mx-auto px-6 lg:px-8">
-            <div class="mb-16">
-                <span class="block text-brand-accent text-sm font-bold tracking-widest uppercase mb-2">Our Services</span>
-                <h2 class="text-4xl md:text-5xl font-light text-brand-dark">
-                    Core Domains of <br><span class="font-bold">Expertise</span>
-                </h2>
-            </div>
-
-            <!-- Services Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Card 1 -->
-                <div class="bg-white p-10 rounded-xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_25px_-5px_rgba(0,0,0,0.1)] transition-shadow border border-gray-100">
-                    <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mb-6">
-                        <i data-lucide="lightbulb" class="w-6 h-6"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-brand-dark mb-4">Leadership Intelligence (LQ)</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Next-generation leadership paradigm integrating foresight, authenticity, trust, people-centered influence, and regenerative change for complex systems.
-                    </p>
-                </div>
-                
-                <!-- Card 2 -->
-                <div class="bg-white p-10 rounded-xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_25px_-5px_rgba(0,0,0,0.1)] transition-shadow border border-gray-100">
-                    <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mb-6">
-                        <i data-lucide="compass" class="w-6 h-6"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-brand-dark mb-4">Global Leadership Systems Architecture</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Comprehensive systems-level frameworks for institutionalizing leadership development, intelligence, and governance continuity at organizational and national scales.
-                    </p>
-                </div>
-
-                <!-- Card 3 -->
-                <div class="bg-white p-10 rounded-xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_25px_-5px_rgba(0,0,0,0.1)] transition-shadow border border-gray-100">
-                    <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mb-6">
-                        <i data-lucide="target" class="w-6 h-6"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-brand-dark mb-4">National & Institutional Leadership</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Strategic advisory for governments, institutions, and organizations developing sustainable leadership architectures across generations and geographies.
-                    </p>
-                </div>
-
-                <!-- Card 4 -->
-                <div class="bg-white p-10 rounded-xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_25px_-5px_rgba(0,0,0,0.1)] transition-shadow border border-gray-100">
-                    <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mb-6">
-                        <i data-lucide="trending-up" class="w-6 h-6"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-brand-dark mb-4">Executive Governance Advisory</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Strategic counsel for executives, boards, and senior leaders across public, private, and civic leadership systems on governance and transformation.
-                    </p>
-                </div>
-
-                <!-- Card 5 -->
-                <div class="bg-white p-10 rounded-xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_25px_-5px_rgba(0,0,0,0.1)] transition-shadow border border-gray-100">
-                    <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mb-6">
-                        <i data-lucide="users" class="w-6 h-6"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-brand-dark mb-4">Healthcare Leadership & Systems</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Clinical and executive healthcare leadership advisory, health systems governance, and strategic transformation initiatives.
-                    </p>
-                </div>
-
-                <!-- Card 6 -->
-                <div class="bg-white p-10 rounded-xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_25px_-5px_rgba(0,0,0,0.1)] transition-shadow border border-gray-100">
-                    <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mb-6">
-                        <i data-lucide="award" class="w-6 h-6"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-brand-dark mb-4">Strategic Global Futures</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Foresight-driven strategic planning for complex, adaptive systems navigating long-term governance capacity and institutional design.
-                    </p>
-                </div>
-            </div>
+      </article>
+      <article class="act" data-act aria-hidden="true">
+        <span class="act__phase">The Manifesto</span>
+        <h2 class="act__title" data-split>Leadership Is an Intelligence Capacity.</h2>
+        <p class="act__sub">A new framework for understanding leadership beyond charisma, position, and personality.</p>
+        <div class="act__cta">
+          <a class="btn" href="about.html#philosophy" data-magnetic>Explore the Philosophy<svg class="ico ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.15" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></a>
+          <a class="btn btn--ghost" href="codex.html" data-magnetic>The Codex</a>
         </div>
-    </section>
-
-    <!-- Section 3: About / Philosophy -->
-    <section id="about" class="py-24 bg-white overflow-hidden">
-        <div class="max-w-7xl mx-auto px-6 lg:px-8">
-            <div class="flex flex-col lg:flex-row items-center gap-16">
-                <!-- Image Side -->
-                <div class="w-full lg:w-5/12">
-                    <div class="relative rounded-2xl overflow-hidden shadow-2xl bg-gray-100 aspect-[4/5]">
-                        <img src="photos.jpg" alt="Dr. Ebere Morgan" class="absolute inset-0 w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'">
-                    </div>
-                </div>
-
-                <!-- Text Side -->
-                <div class="w-full lg:w-7/12">
-                    <span class="block text-brand-accent text-sm font-bold tracking-widest uppercase mb-3">Leadership Philosophy</span>
-                    <h2 class="text-4xl md:text-5xl font-light text-brand-dark mb-8 leading-tight">
-                        Leadership as a <span class="font-bold">Systemic, <br>Institutionalized Capability</span>
-                    </h2>
-                    
-                    <div class="space-y-6 text-gray-600 text-lg leading-relaxed mb-10">
-                        <p>
-                            Dr. Ebere Morgan is a global leadership futurist, governance strategist, and systems architect whose work addresses a defining question: How do complex systems like nations, governments, institutions, and organizations intentionally develop leadership intelligence capable of sustaining trust, continuity, and transformative impact across generations and geographies?
-                        </p>
-                        <p>
-                            His leadership philosophy reframes leadership not as personality or position, but as a systemic, evidence-informed, and institutionalized capability. His work bridges scholarship and practice, combining systems thinking, leadership science, and real-world institutional design.
-                        </p>
-                    </div>
-
-                    <!-- Checklist -->
-                    <ul class="space-y-4 mb-12">
-                        <li class="flex items-start">
-                            <i data-lucide="check-circle" class="w-6 h-6 text-brand-accent mr-3 flex-shrink-0 mt-0.5"></i>
-                            <span class="text-gray-700">Systems thinking and leadership science integration</span>
-                        </li>
-                        <li class="flex items-start">
-                            <i data-lucide="check-circle" class="w-6 h-6 text-brand-accent mr-3 flex-shrink-0 mt-0.5"></i>
-                            <span class="text-gray-700">Evidence-informed, institutionalized capability building</span>
-                        </li>
-                        <li class="flex items-start">
-                            <i data-lucide="check-circle" class="w-6 h-6 text-brand-accent mr-3 flex-shrink-0 mt-0.5"></i>
-                            <span class="text-gray-700">Cross-regional experience across academia, healthcare, and public institutions</span>
-                        </li>
-                        <li class="flex items-start">
-                            <i data-lucide="check-circle" class="w-6 h-6 text-brand-accent mr-3 flex-shrink-0 mt-0.5"></i>
-                            <span class="text-gray-700">Bridging cultural, institutional, and governance differences</span>
-                        </li>
-                    </ul>
-
-                    <!-- Signature / Credentials -->
-                    <div class="pt-8 border-t border-gray-200">
-                        <h4 class="text-xl font-bold text-brand-dark mb-1">Dr. Ebere Morgan, MD, Ph.D.</h4>
-                        <p class="text-gray-500 text-sm mb-2">CEO, Dr.Morgan • Founding Visionary, Leadership Impact for Transformation (LIFT)</p>
-                        <p class="text-gray-500 text-sm italic">Author, The 4th Dimension: The New Science of Leadership Intelligence</p>
-                    </div>
-                </div>
-            </div>
+      </article>
+      <article class="act" data-act aria-hidden="true">
+        <span class="act__phase">The Manifestation</span>
+        <h2 class="act__title" data-split>Ideas Become Powerful When They Become Systems.</h2>
+        <p class="act__sub">Building leadership ecosystems, institutional frameworks, and transformational architectures for the future.</p>
+        <div class="act__cta">
+          <a class="btn" href="methodology.html" data-magnetic>See the Architecture<svg class="ico ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.15" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></a>
+          <a class="btn btn--ghost" href="services.html" data-magnetic>Explore the Work</a>
         </div>
-    </section>
-
-    <!-- Section 4: Testimonials -->
-    <section id="testimonials" class="py-24 bg-brand-dark relative overflow-hidden">
-        <!-- Background accents -->
-        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-brand-darker opacity-50 blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-blue-900/10 blur-3xl"></div>
-
-        <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-            <div class="flex flex-col lg:flex-row items-center gap-16">
-                <!-- Left Title Area -->
-                <div class="w-full lg:w-5/12">
-                    <span class="block text-brand-accent text-sm font-bold tracking-widest uppercase mb-3">Client Stories</span>
-                    <h2 class="text-4xl md:text-5xl font-light text-white mb-10 leading-tight">
-                        Trusted by Executives, <br>
-                        <span class="font-bold">Institutions & <br>Governments</span>
-                    </h2>
-                    
-                    <!-- Navigation Controls -->
-                    <div class="flex gap-3">
-                        <button id="prev-slide" aria-label="Previous Testimonial" class="w-12 h-12 bg-white rounded flex items-center justify-center text-brand-dark hover:bg-gray-100 transition-colors">
-                            <i data-lucide="chevron-left" class="w-6 h-6"></i>
-                        </button>
-                        <button id="next-slide" aria-label="Next Testimonial" class="w-12 h-12 bg-white rounded flex items-center justify-center text-brand-dark hover:bg-gray-100 transition-colors">
-                            <i data-lucide="chevron-right" class="w-6 h-6"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Right Quote Box -->
-                <div class="w-full lg:w-7/12">
-                    <div class="bg-white rounded-xl p-10 md:p-14 shadow-2xl relative min-h-[340px]">
-                        <!-- Quote Icon -->
-                        <div class="absolute top-10 left-10 text-orange-100 opacity-60">
-                            <svg width="60" height="60" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M14.017 18L14.017 10.609C14.017 4.905 17.748 1.039 23 0L23.995 2.151C21.563 3.068 20 5.789 20 8H24V18H14.017ZM0 18V10.609C0 4.905 3.748 1.038 9 0L9.996 2.151C7.563 3.068 6 5.789 6 8H9.983L9.983 18L0 18Z" />
-                            </svg>
-                        </div>
-                        
-                        <div id="testimonial-container" class="relative w-full h-full">
-                            <!-- Slide 1 -->
-                            <blockquote class="testimonial-slide active relative z-10 pt-8 transition-opacity duration-300">
-                                <p class="text-xl md:text-2xl text-gray-600 font-light leading-relaxed mb-10">
-                                    "Dr. Morgan's work on leadership intelligence has fundamentally transformed how we approach governance and institutional capacity. His systems-level frameworks provide clarity that bridges cultural and institutional differences."
-                                </p>
-                                <div class="flex items-center">
-                                    <img src="https://i.pravatar.cc/150?img=47" alt="Client" class="w-14 h-14 rounded-full object-cover mr-4">
-                                    <div>
-                                        <h4 class="font-bold text-brand-dark">Global Executive Leader</h4>
-                                        <p class="text-sm text-gray-500">Public Sector Institution, Africa</p>
-                                    </div>
-                                </div>
-                            </blockquote>
-
-                            <!-- Slide 2 -->
-                            <blockquote class="testimonial-slide hidden relative z-10 pt-8 transition-opacity duration-300">
-                                <p class="text-xl md:text-2xl text-gray-600 font-light leading-relaxed mb-10">
-                                    "The strategic frameworks provided by Dr. Morgan have been instrumental in redesigning our national healthcare governance. His visionary approach to global systems architecture is unmatched in the field."
-                                </p>
-                                <div class="flex items-center">
-                                    <img src="https://i.pravatar.cc/150?img=33" alt="National Health Director" class="w-14 h-14 rounded-full object-cover mr-4">
-                                    <div>
-                                        <h4 class="font-bold text-brand-dark">National Health Director</h4>
-                                        <p class="text-sm text-gray-500">Ministry of Health, Europe</p>
-                                    </div>
-                                </div>
-                            </blockquote>
-
-                            <!-- Slide 3 -->
-                            <blockquote class="testimonial-slide hidden relative z-10 pt-8 transition-opacity duration-300">
-                                <p class="text-xl md:text-2xl text-gray-600 font-light leading-relaxed mb-10">
-                                    "Working with Dr. Morgan allowed our executive board to navigate complex geopolitical shifts with foresight and resilience. A true masterclass in developing strategic global futures and enduring institutional trust."
-                                </p>
-                                <div class="flex items-center">
-                                    <img src="https://i.pravatar.cc/150?img=11" alt="Chief Executive Officer" class="w-14 h-14 rounded-full object-cover mr-4">
-                                    <div>
-                                        <h4 class="font-bold text-brand-dark">Chief Executive Officer</h4>
-                                        <p class="text-sm text-gray-500">Multinational Corporation, North America</p>
-                                    </div>
-                                </div>
-                            </blockquote>
-                        </div>
-                    </div>
-                    
-                    <!-- Carousel Dots -->
-                    <div class="flex items-center gap-2 mt-6 ml-2" id="testimonial-dots">
-                        <button aria-label="Go to slide 1" class="dot-btn w-6 h-2 bg-brand-accent rounded-full transition-all duration-300" data-slide="0"></button>
-                        <button aria-label="Go to slide 2" class="dot-btn w-2 h-2 bg-gray-600 hover:bg-gray-400 rounded-full transition-all duration-300" data-slide="1"></button>
-                        <button aria-label="Go to slide 3" class="dot-btn w-2 h-2 bg-gray-600 hover:bg-gray-400 rounded-full transition-all duration-300" data-slide="2"></button>
-                    </div>
-                </div>
-            </div>
+      </article>
+      <article class="act" data-act aria-hidden="true">
+        <span class="act__phase">The Mandate</span>
+        <h2 class="act__title" data-split>Every Generation Must Rebuild Leadership.</h2>
+        <p class="act__sub">Advancing the systems, institutions, and leadership capacities necessary for enduring societal transformation.</p>
+        <div class="act__cta">
+          <a class="btn" href="services.html" data-magnetic>Join the Mission<svg class="ico ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.15" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></a>
+          <a class="btn btn--ghost" href="engage.html" data-magnetic>Initiate Engagement</a>
         </div>
-    </section>
-
-    <!-- Section 5: Contact -->
-    <section id="contact" class="py-24 bg-white">
-        <div class="max-w-7xl mx-auto px-6 lg:px-8">
-            <div class="flex flex-col lg:flex-row gap-16">
-                <!-- Contact Info -->
-                <div class="w-full lg:w-5/12">
-                    <h2 class="text-4xl md:text-5xl font-light text-brand-dark mb-6 leading-tight">
-                        Ready to Transform <br>
-                        <span class="font-bold">Your Organization?</span>
-                    </h2>
-                    
-                    <p class="text-gray-600 text-lg leading-relaxed mb-12">
-                        Whether you're developing national leadership architectures, advancing institutional governance, or seeking strategic advisory on complex transformations, let's explore how leadership intelligence can drive sustainable impact.
-                    </p>
-
-                    <div class="space-y-8">
-                        <div class="flex items-start">
-                            <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mr-4 flex-shrink-0">
-                                <i data-lucide="mail" class="w-5 h-5"></i>
-                            </div>
-                            <div class="pt-1">
-                                <h4 class="font-bold text-brand-dark">Email</h4>
-                                <p class="text-gray-600">drmorgan@drmorgan.ai</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-start">
-                            <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mr-4 flex-shrink-0">
-                                <i data-lucide="phone" class="w-5 h-5"></i>
-                            </div>
-                            <div class="pt-1">
-                                <h4 class="font-bold text-brand-dark">Phone</h4>
-                                <p class="text-gray-600">+1 (724) 400-0700</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-start">
-                            <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mr-4 flex-shrink-0">
-                                <i data-lucide="map-pin" class="w-5 h-5"></i>
-                            </div>
-                            <div class="pt-1">
-                                <h4 class="font-bold text-brand-dark">Location</h4>
-                                <p class="text-gray-600">Dallas, Texas, USA</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start">
-                            <div class="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-white mr-4 flex-shrink-0">
-                                <i data-lucide="linkedin" class="w-5 h-5"></i>
-                            </div>
-                            <div class="pt-1">
-                                <h4 class="font-bold text-brand-dark">LinkedIn</h4>
-                                <a href="https://www.linkedin.com/in/eberemorgan?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" rel="noopener noreferrer" class="text-brand-accent hover:text-brand-accentHover transition-colors font-medium">Connect on LinkedIn</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Contact Form -->
-                <div class="w-full lg:w-7/12">
-                    <div class="bg-white p-8 md:p-10 rounded-xl border border-gray-100 shadow-[0_4px_25px_-5px_rgba(0,0,0,0.05)]">
-                        <form action="mailto:info@drmorgan.ai" method="POST" enctype="text/plain" class="space-y-6">
-                            <div>
-                                <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                                <input type="text" id="name" name="name" placeholder="John Smith" class="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none transition-all">
-                            </div>
-                            
-                            <div>
-                                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                                <input type="email" id="email" name="email" placeholder="john@company.com" class="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none transition-all">
-                            </div>
-                            
-                            <div>
-                                <label for="company" class="block text-sm font-medium text-gray-700 mb-2">Company</label>
-                                <input type="text" id="company" name="company" placeholder="Company Name" class="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none transition-all">
-                            </div>
-                            
-                            <div>
-                                <label for="message" class="block text-sm font-medium text-gray-700 mb-2">How can we help?</label>
-                                <textarea id="message" name="message" rows="4" placeholder="Tell us about your leadership development goals..." class="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-brand-accent focus:border-transparent outline-none transition-all resize-none"></textarea>
-                            </div>
-                            
-                            <button type="submit" class="w-full bg-brand-dark hover:bg-brand-darker text-white font-semibold py-4 px-6 rounded-md transition-colors flex items-center justify-center group">
-                                Send Inquiry
-                                <i data-lucide="arrow-right" class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
+      </article>
+      <article class="act" data-act aria-hidden="true">
+        <span class="act__phase">The Movement</span>
+        <h2 class="act__title" data-split>The Future Will Belong to Leadership Ecosystems.</h2>
+        <p class="act__sub">From philosophy to infrastructure, shaping a new global conversation on leadership continuity and futures.</p>
+        <div class="act__cta">
+          <a class="btn" href="engage.html" data-magnetic>Shape the Future<svg class="ico ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.15" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></a>
+          <a class="btn btn--ghost" href="codex.html" data-magnetic>Explore the Codex</a>
         </div>
-    </section>
+      </article>
+    </div>
+  </div>
+  <div class="hero__right">
+    <div class="hero__media">
+      <div class="hero__shot" data-shot><img src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1400&h=1800&q=70" alt="A leadership session in progress" width="1400" height="1800" loading="eager" fetchpriority="high" decoding="async"></div>      <div class="hero__shot" data-shot><img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1400&h=1800&q=70" alt="" width="1400" height="1800" loading="lazy" decoding="async"></div>      <div class="hero__shot" data-shot><img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1400&h=1800&q=70" alt="Colleagues working through a problem together" width="1400" height="1800" loading="lazy" decoding="async"></div>      <div class="hero__shot" data-shot><img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1400&h=1800&q=70" alt="A teaching session in progress" width="1400" height="1800" loading="lazy" decoding="async"></div>      <div class="hero__shot" data-shot><img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1400&h=1800&q=70" alt="A team mid-discussion around a table" width="1400" height="1800" loading="lazy" decoding="async"></div>
+    
+      <div class="hero__phases" aria-hidden="true">
+        <span class="hero__phase" data-phase>The Manifest</span>
+        <span class="hero__phase" data-phase>The Manifesto</span>
+        <span class="hero__phase" data-phase>The Manifestation</span>
+        <span class="hero__phase" data-phase>The Mandate</span>
+        <span class="hero__phase" data-phase>The Movement</span>
+      </div>
+    </div>
+    <canvas class="hero__ribbon" data-ribbon aria-hidden="true"></canvas>
+  </div>
 
-    <!-- Footer -->
-    <footer class="bg-brand-darker border-t border-gray-800 py-8">
-        <div class="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="text-gray-500 text-sm flex flex-col md:flex-row items-center gap-2 text-center md:text-left">
-                <span>&copy; <script>document.write(new Date().getFullYear())</script> Dr. Morgan. All rights reserved.</span>
-                <span class="hidden md:inline">|</span>
-                <span>Website by <a href="https://wopara.com" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors border-b border-gray-600 hover:border-white pb-0.5">Wopara Group</a></span>
-            </div>
-            <div class="flex items-center gap-6 mt-4 md:mt-0">
-                <a href="https://www.linkedin.com/in/eberemorgan?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-brand-accent transition-colors" aria-label="LinkedIn Profile">
-                    <i data-lucide="linkedin" class="w-5 h-5"></i>
-                </a>
-                <a href="#" class="text-gray-500 hover:text-white transition-colors text-sm">Privacy Policy</a>
-                <a href="#" class="text-gray-500 hover:text-white transition-colors text-sm">Terms of Service</a>
-            </div>
+  <div class="hero__bar">
+    <div class="acts-rail" aria-label="Manifesto acts">
+      <button data-goto="0" aria-label="Go to: The Manifest"><i></i><span class="lbl">The Manifest</span></button>      <button data-goto="1" aria-label="Go to: The Manifesto"><i></i><span class="lbl">The Manifesto</span></button>      <button data-goto="2" aria-label="Go to: The Manifestation"><i></i><span class="lbl">The Manifestation</span></button>      <button data-goto="3" aria-label="Go to: The Mandate"><i></i><span class="lbl">The Mandate</span></button>      <button data-goto="4" aria-label="Go to: The Movement"><i></i><span class="lbl">The Movement</span></button>
+    </div>
+    <div class="hero__ctl">
+      <button class="themetoggle" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch to dark mode" title="Switch to dark mode">
+        <span class="themetoggle__ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle class="tt-sun" cx="12" cy="12" r="4"/>
+            <g class="tt-rays"><path d="M12 2.4v2.1M12 19.5v2.1M2.4 12h2.1M19.5 12h2.1M5.2 5.2l1.5 1.5M17.3 17.3l1.5 1.5M18.8 5.2l-1.5 1.5M6.7 17.3l-1.5 1.5"/></g>
+            <path class="tt-moon" d="M20.6 14.8A8.7 8.7 0 0 1 9.2 3.4a8.7 8.7 0 1 0 11.4 11.4Z"/>
+          </svg>
+        </span>
+        <span class="themetoggle__lbl">Dark</span>
+      </button>
+      <div class="hero__steps" role="group" aria-label="Manifesto playback">
+        <button class="hero__step" type="button" data-prev aria-label="Previous statement" title="Previous statement"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5"/></svg></button>
+        <button class="hero__step" type="button" data-hold aria-pressed="false" aria-label="Pause the manifesto" title="Pause the manifesto">
+          <svg class="ic-pause" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M7.8 5.4v9.2M12.2 5.4v9.2"/></svg>
+          <svg class="ic-play" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M7.4 5.1 14.6 10l-7.2 4.9z"/></svg>
+        </button>
+        <button class="hero__step" type="button" data-next aria-label="Next statement" title="Next statement"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 4.5 13 10l-5.5 5.5"/></svg></button>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- PREMISE -->
+<section class="section surface-paper statement" id="the-premise">
+  <div class="shell split" style="align-items:center">
+    <div>
+      <!-- Placeholder footage: coverr.co/videos/coverr-teamwork-in-the-office-7943
+           (Coverr licence — free commercial use, no attribution required).
+           Swap it with assets/video/encode-premise.sh, which crops any source to
+           the 4:5 the card expects and rebuilds the poster. -->
+      <figure class="videocard" data-reveal>
+        <video
+          poster="assets/video/premise-poster.jpg"
+          muted loop playsinline autoplay preload="metadata"
+          aria-label="A working session in progress"
+          data-ambient>
+          <source src="assets/video/premise.mp4" type="video/mp4">
+        </video>
+        <figcaption class="videocard__note">everyone remembers the talk. almost no one keeps the habit.</figcaption>
+      </figure>
+    </div>
+    <div class="stack" data-group>
+      <p class="kicker" data-reveal>The premise</p>
+      <p class="giant" data-reveal>A structure that <span class="mk mk--under">holds<svg viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path style="--len:230" d="M3 8C42 3 82 10 122 5s55-2 75 3"/></svg></span></p>
+      <p class="giant" data-reveal style="--d:110ms">A practice that <span class="mk mk--under">repeats<svg viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path style="--len:230;--dd:280ms" d="M3 7c38 4 78-4 118 1s57 4 76-1"/></svg></span></p>
+      <p class="giant" data-reveal style="--d:220ms">An institution that <span class="mk mk--under">remembers<svg viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path style="--len:230;--dd:420ms" d="M3 6c40 5 80-3 120 2s54 3 74-2"/></svg></span></p>
+    </div>
+  </div>
+  <div class="shell" style="margin-top:clamp(2.5rem,5vw,4rem)">
+    <div class="pillrow" data-group>
+      <a class="pill" href="about.html" data-reveal>
+        <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=600&h=300&q=70" alt="" width="600" height="300" loading="lazy" decoding="async">
+        <span>The thesis</span>
+        <svg class="ico ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.15" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg>
+      </a>
+      <a class="pill" href="services.html" data-reveal>
+        <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=600&h=300&q=70" alt="A working session in progress" width="600" height="300" loading="lazy" decoding="async">
+        <span>The room</span>
+        <svg class="ico ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.15" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg>
+      </a>
+      <a class="pill" href="methodology.html" data-reveal>
+        <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=600&h=300&q=70" alt="A team working through a problem" width="600" height="300" loading="lazy" decoding="async">
+        <span>The practice</span>
+        <svg class="ico ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.15" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg>
+      </a>
+      <a class="pill" href="codex.html" data-reveal>
+        <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&h=300&q=70" alt="Colleagues collaborating around a shared table" width="600" height="300" loading="lazy" decoding="async">
+        <span>What outlasts it</span>
+        <svg class="ico ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.15" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- DOMAINS -->
+<section class="section surface-ink" id="a-new-architecture">
+  <div class="shell">
+    <div class="split" style="align-items:start;margin-bottom:clamp(2rem,4vw,3.5rem)">
+      <div>
+        <p class="kicker" data-reveal>Three domains</p>
+        <h2 class="giant" data-reveal style="--d:80ms;margin-top:1rem">A new <span class="uline em">architecture<svg viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 8C40 2 80 11 120 5s58-3 78 2"/></svg></span></h2>
+      </div>
+
+      <figure class="buildstory">
+        <svg viewBox="40 38 280 158" fill="none" role="img"
+             aria-label="Four stages: a blueprint is drawn, handed over and briefed, materials are carried in, and a crane raises the building">
+
+          <!-- 1 · DRAFT -->
+          <g class="bs-scene bs-1">
+            <path class="bs-ln bs-d" style="--l:700" d="M62 46h236v138H62z"/>
+            <path class="bs-ln bs-d" style="--l:180;--w:6%"  d="M92 158h176"/>
+            <path class="bs-ln bs-d" style="--l:130;--w:8%"  d="M112 158V98M248 158V98"/>
+            <path class="bs-ln bs-d" style="--l:200;--w:10%" d="M104 98l76-32 76 32"/>
+            <path class="bs-ln bs-d" style="--l:110;--w:13%" d="M168 158v-30h24v30"/>
+            <path class="bs-ln bs-d" style="--l:150;--w:15%" d="M126 112h20v18h-20zM214 112h20v18h-20z"/>
+            <g class="bs-pen"><path class="bs-ln" d="M0 0l10-14 5 3-10 14z"/><path class="bs-ln" d="M0 0l-2 6 5-3z"/></g>
+            <path class="bs-ln bs-desk" d="M40 196h280"/>
+          </g>
+
+          <!-- 2 · BRIEF -->
+          <g class="bs-scene bs-2">
+            <g class="bs-fig"><circle cx="96" cy="96" r="11"/><path d="M96 107v42M96 149l-13 30M96 149l13 30M96 118l-20 14M96 118l22 10"/></g>
+            <g class="bs-fig bs-boss"><circle cx="252" cy="92" r="11"/><path d="M252 103v46M252 149l-13 32M252 149l13 32M252 114l-20 16"/>
+              <path class="bs-arm" d="M252 114l24 4"/></g>
+            <g class="bs-roll"><path d="M-16-5h34v10h-34z"/><path d="M-16-5v10M18-5v10"/></g>
+            <g class="bs-say"><path d="M286 78a26 26 0 0 1 0 30"/><path d="M296 70a38 38 0 0 1 0 46"/><path d="M306 62a50 50 0 0 1 0 62"/></g>
+            <path class="bs-ln bs-desk" d="M40 196h280"/>
+          </g>
+
+          <!-- 3 · GATHER -->
+          <g class="bs-scene bs-3">
+            <g class="bs-carry bs-c1"><circle cx="0" cy="112" r="9"/><path d="M0 121v34M0 155l-11 26M0 155l11 26M0 130l-15 10M0 130l15 10"/><rect x="-16" y="86" width="32" height="15" rx="2"/></g>
+            <g class="bs-carry bs-c2"><circle cx="0" cy="112" r="9"/><path d="M0 121v34M0 155l-11 26M0 155l11 26M0 130l-15 10M0 130l15 10"/><rect x="-16" y="86" width="32" height="15" rx="2"/></g>
+            <g class="bs-carry bs-c3"><circle cx="0" cy="112" r="9"/><path d="M0 121v34M0 155l-11 26M0 155l11 26M0 130l-15 10M0 130l15 10"/><rect x="-16" y="86" width="32" height="15" rx="2"/></g>
+            <g class="bs-stack">
+              <rect class="bs-blk bs-b1" x="240" y="166" width="44" height="16" rx="2"/>
+              <rect class="bs-blk bs-b2" x="240" y="148" width="44" height="16" rx="2"/>
+              <rect class="bs-blk bs-b3" x="240" y="130" width="44" height="16" rx="2"/>
+            </g>
+            <path class="bs-ln bs-desk" d="M40 196h280"/>
+          </g>
+
+          <!-- 4 · BUILD -->
+          <g class="bs-scene bs-4">
+            <path class="bs-ln bs-d" style="--l:200" d="M306 190V38"/>
+            <path class="bs-ln bs-d" style="--l:190;--w:78%" d="M306 52H140"/>
+            <path class="bs-ln bs-d" style="--l:70;--w:79%"  d="M306 38l-34 14M296 190h22"/>
+            <g class="bs-hook"><path d="M0 0v34"/><rect x="-15" y="34" width="30" height="13" rx="2"/></g>
+            <g class="bs-floors">
+              <rect class="bs-fl bs-f1" x="150" y="166" width="96" height="20" rx="2"/>
+              <rect class="bs-fl bs-f2" x="150" y="144" width="96" height="20" rx="2"/>
+              <rect class="bs-fl bs-f3" x="150" y="122" width="96" height="20" rx="2"/>
+              <rect class="bs-fl bs-f4" x="150" y="100" width="96" height="20" rx="2"/>
+            </g>
+            <path class="bs-ln bs-desk" d="M40 196h280"/>
+          </g>
+        </svg>
+      </figure>
+    </div>
+    <div class="domains" data-group>
+    <a class="flip" href="services.html#advisory" data-reveal>
+      <div class="flip__face flip__face--front">
+        <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=800&h=1100&q=70" alt="Leadership Intelligence" width="800" height="1100" loading="lazy" decoding="async">
+        <span class="flip__no">01 / INTELLIGENCE</span>
+        <h3 class="mid flip__title">Leadership Intelligence</h3>
+        <p class="flip__hint"><i></i> Hover, then click</p>
+      </div>
+      <div class="flip__face flip__face--back">
+        <span class="flip__no">01</span>
+        <div class="flip__art"><svg class="art a-orbit" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+<circle class="ring" cx="60" cy="60" r="50" stroke="currentColor" stroke-opacity=".22" stroke-dasharray="2 7"/>
+<circle class="ring" cx="60" cy="60" r="36" stroke="currentColor" stroke-opacity=".32" stroke-dasharray="1 5"/>
+<circle class="ring" cx="60" cy="60" r="22" stroke="var(--accent-2)" stroke-opacity=".55"/>
+<g class="sat"><circle cx="60" cy="10" r="3.4" fill="var(--accent-2)"/></g>
+<g class="sat sat--b"><circle cx="60" cy="24" r="2.2" fill="currentColor" fill-opacity=".75"/></g>
+<circle cx="60" cy="60" r="5" fill="var(--accent-2)"/>
+</svg></div>
+        <div><h3 class="small flip__title">Leadership Intelligence</h3><p class="flip__text">The capacity to read complexity, influence transformation, and sustain progress.</p><span class="flip__go"><i></i>Advisory services</span></div>
+      </div>
+    </a>
+    <a class="flip" href="services.html#systems" data-reveal>
+      <div class="flip__face flip__face--front">
+        <img src="https://images.unsplash.com/photo-1552581234-26160f608093?auto=format&fit=crop&w=800&h=1100&q=70" alt="Leadership Systems" width="800" height="1100" loading="lazy" decoding="async">
+        <span class="flip__no">02 / SYSTEMS</span>
+        <h3 class="mid flip__title">Leadership Systems</h3>
+        <p class="flip__hint"><i></i> Hover, then click</p>
+      </div>
+      <div class="flip__face flip__face--back">
+        <span class="flip__no">02</span>
+        <div class="flip__art"><svg class="art a-net" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+<g stroke="var(--accent-2)" stroke-opacity=".45" stroke-width="1">
+<line class="edge" x1="20" y1="24" x2="60" y2="58"/>
+<line class="edge" x1="100" y1="20" x2="60" y2="58"/>
+<line class="edge" x1="14" y1="86" x2="60" y2="58"/>
+<line class="edge" x1="104" y1="92" x2="60" y2="58"/>
+<line class="edge" x1="60" y1="106" x2="60" y2="58"/>
+<line class="edge" x1="20" y1="24" x2="100" y2="20"/>
+<line class="edge" x1="14" y1="86" x2="60" y2="106"/>
+<line class="edge" x1="104" y1="92" x2="60" y2="106"/>
+</g>
+<g fill="currentColor">
+<circle class="node" cx="20" cy="24" r="3.4"/>
+<circle class="node" cx="100" cy="20" r="3.4"/>
+<circle class="node" cx="14" cy="86" r="3.4"/>
+<circle class="node" cx="104" cy="92" r="3.4"/>
+<circle class="node" cx="60" cy="106" r="3.4"/>
+<circle class="node" cx="60" cy="58" r="6" fill="var(--accent-2)"/>
+</g>
+</svg></div>
+        <div><h3 class="small flip__title">Leadership Systems</h3><p class="flip__text">The structures, relationships and conditions that carry effectiveness over time.</p><span class="flip__go"><i></i>Systems design</span></div>
+      </div>
+    </a>
+    <a class="flip" href="services.html#foresight" data-reveal>
+      <div class="flip__face flip__face--front">
+        <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&h=1100&q=70" alt="Leadership Futures" width="800" height="1100" loading="lazy" decoding="async">
+        <span class="flip__no">03 / FUTURES</span>
+        <h3 class="mid flip__title">Leadership Futures</h3>
+        <p class="flip__hint"><i></i> Hover, then click</p>
+      </div>
+      <div class="flip__face flip__face--back">
+        <span class="flip__no">03</span>
+        <div class="flip__art"><svg class="art a-horizon" viewBox="0 0 120 80" fill="none" aria-hidden="true">
+<path class="arc" d="M4 66C30 66 38 16 60 16s34 44 56 28" stroke="var(--accent-2)" stroke-opacity=".7" stroke-width="1.4"/>
+<line x1="4" y1="73" x2="116" y2="73" stroke="currentColor" stroke-opacity=".25"/>
+<g class="mark"><circle cx="16" cy="60" r="3.4" fill="currentColor"/></g>
+<circle class="halo" cx="60" cy="16" r="4" fill="none" stroke="var(--accent-2)" stroke-opacity=".7"/>
+<circle cx="60" cy="16" r="3" fill="var(--accent-2)"/>
+</svg></div>
+        <div><h3 class="small flip__title">Leadership Futures</h3><p class="flip__text">Emerging realities and the evolving role of leadership in resilient societies.</p><span class="flip__go"><i></i>Foresight &amp; futures</span></div>
+      </div>
+    </a></div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE (sticky stack) -->
+<section class="section surface-ink-2" id="from-leadership-to-lasting-impact">
+  <div class="shell">
+    <div class="split" style="align-items:end;margin-bottom:clamp(2.5rem,5vw,4rem)">
+      <div>
+        <p class="kicker kicker--bare" data-reveal>The architecture</p>
+        <h2 class="giant" data-reveal style="--d:80ms;margin-top:1rem">From leadership<br>to <span class="em">lasting impact</span></h2>
+      </div>
+      <figure class="archband" aria-hidden="true">
+        <svg viewBox="0 0 720 224" fill="none">
+          <path class="ab ab-1" style="--l:604" d="M58 194h604"/>
+          <path class="ab ab-2" style="--l:142" d="M360 194V54"/>
+          <path class="ab ab-3" style="--l:190" d="M360 78H172"/>
+          <path class="ab ab-3" style="--l:190" d="M360 78h188"/>
+          <path class="ab ab-4" style="--l:118" d="M172 78v116"/>
+          <path class="ab ab-4" style="--l:118" d="M548 78v116"/>
+          <path class="ab ab-5" style="--l:100" d="M266 96v98"/>
+          <path class="ab ab-5" style="--l:100" d="M454 96v98"/>
+          <path class="ab ab-6" style="--l:104" d="M172 136l94-38"/>
+          <path class="ab ab-6" style="--l:104" d="M548 136l-94-38"/>
+          <path class="ab ab-7" style="--l:150" d="M196 194a47 47 0 0 1 94 0"/>
+          <path class="ab ab-7" style="--l:150" d="M430 194a47 47 0 0 1 94 0"/>
+          <path class="ab ab-8" style="--l:126" d="M300 54h120"/>
+          <path class="ab ab-8" style="--l:126" d="M360 54l-32-28h64z"/>
+          <circle class="ab-node ab-n1" cx="360" cy="78" r="5.5"/>
+          <circle class="ab-node ab-n2" cx="172" cy="78" r="4"/>
+          <circle class="ab-node ab-n2" cx="548" cy="78" r="4"/>
+          <circle class="ab-node ab-n3" cx="266" cy="96" r="3.5"/>
+          <circle class="ab-node ab-n3" cx="454" cy="96" r="3.5"/>
+          <g class="ab-pulse"><circle cx="360" cy="78" r="26"/></g>
+          <g class="ab-pulse ab-pulse2"><circle cx="360" cy="78" r="26"/></g>
+        </svg>
+      </figure>
+    </div>
+    <div class="stackpanels">
+    <div class="panel" data-panel>
+      <div class="panel__in">
+        <div class="panel__media panel__media--round reveal-img pbox"><img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=1000&h=640&q=70" alt="Intelligence Capacity" width="1000" height="640" loading="lazy" decoding="async" data-parallax="9"></div>
+        <div class="stack">
+          <p class="panel__no">01 / The Architecture</p>
+          <h3 class="big">Intelligence Capacity</h3>
+          <p class="mid em" style="font-family:var(--font-display)">Capacity before charisma.</p>
+          <p class="lede">The ability to navigate complexity, interpret emerging realities and create meaningful progress.</p>
+          <div style="max-width:8rem;color:var(--bone)"><svg class="art a-pillars" viewBox="0 0 120 70" fill="none" aria-hidden="true">
+<line x1="6" y1="12" x2="114" y2="12" stroke="var(--accent-2)" stroke-opacity=".8" stroke-width="1.4"/>
+<g fill="currentColor" fill-opacity=".45">
+<rect x="22" y="16" width="10" height="46"/><rect x="55" y="16" width="10" height="46"/><rect x="88" y="16" width="10" height="46"/>
+</g>
+<line x1="6" y1="64" x2="114" y2="64" stroke="currentColor" stroke-opacity=".3"/>
+</svg></div>
         </div>
-    </footer>
+      </div>
+    </div>
+    <div class="panel" data-panel>
+      <div class="panel__in">
+        <div class="panel__media panel__media--round reveal-img pbox"><img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1000&h=640&q=70" alt="Systems Capability" width="1000" height="640" loading="lazy" decoding="async" data-parallax="9"></div>
+        <div class="stack">
+          <p class="panel__no">02 / The Architecture</p>
+          <h3 class="big">Systems Capability</h3>
+          <p class="mid em" style="font-family:var(--font-display)">Structure before effort.</p>
+          <p class="lede">Sustainable outcomes come from systems that translate leadership into coordinated action.</p>
+          <div style="max-width:8rem;color:var(--bone)"><svg class="art a-converge" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+<g stroke="var(--accent-2)" stroke-width="1.4" stroke-linecap="round">
+<path d="M8 8l44 44"/><path d="M112 8L68 52"/><path d="M8 112l44-44"/><path d="M112 112L68 68"/>
+</g>
+<rect x="52" y="52" width="16" height="16" stroke="currentColor" stroke-opacity=".6"/>
+</svg></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel" data-panel>
+      <div class="panel__in">
+        <div class="panel__media panel__media--round reveal-img pbox"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=1000&h=640&q=70" alt="Institutional Continuity" width="1000" height="640" loading="lazy" decoding="async" data-parallax="9"></div>
+        <div class="stack">
+          <p class="panel__no">03 / The Architecture</p>
+          <h3 class="big">Institutional Continuity</h3>
+          <p class="mid em" style="font-family:var(--font-display)">Continuity before success.</p>
+          <p class="lede">Enduring institutions preserve purpose and transmit capability across transitions.</p>
+          <div style="max-width:8rem;color:var(--bone)"><svg class="art a-time" viewBox="0 0 120 40" fill="none" aria-hidden="true">
+<line class="stem" x1="6" y1="20" x2="114" y2="20" stroke="currentColor" stroke-opacity=".3"/>
+<g fill="var(--accent-2)">
+<circle class="dot" cx="14" cy="20" r="3.6"/>
+<circle class="dot" cx="46" cy="20" r="3.6"/>
+<circle class="dot" cx="78" cy="20" r="3.6"/>
+<circle class="dot" cx="110" cy="20" r="3.6"/>
+</g>
+</svg></div>
+        </div>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:clamp(2.5rem,5vw,4rem)" data-reveal><a class="btn" href="codex.html" data-magnetic>Explore the Codex<svg class="ico ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.15" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></a></p>
+  </div>
+  </div>
+</section>
 
-    <!-- Initialize Icons & Scripts -->
-    <script>
-        // Initialize Lucide Icons
-        lucide.createIcons();
+<!-- BLUEPRINT -->
+<section class="section surface-ink" id="blueprint">
+  <div class="shell">
+    <div style="margin-bottom:clamp(2rem,4vw,3.5rem)">
+      <p class="kicker kicker--bare" data-reveal>The blueprint</p>
+      <h2 class="giant" data-reveal style="--d:80ms;margin-top:1rem">One structure.<br><span class="em">Three loads.</span></h2>
+    </div>
+    <div class="blueprint" data-blueprint><svg viewBox="0 0 1000 470" fill="none" role="img" aria-label="Architectural elevation: three columns, marked Intelligence, Systems and Futures, carrying one entablature and pediment on a shared foundation">
+<g stroke="var(--accent-2)" stroke-width="1.5" stroke-linejoin="round">
+<path data-scroll-draw d="M16 440H984"/>
+<path data-scroll-draw d="M62 438H938V420H62Z"/>
+<path data-scroll-draw d="M88 420H912V396H88Z"/>
+<path data-scroll-draw d="M114 396H886V372H114Z"/>
+<path data-scroll-draw d="M212 372H288V358H212Z"/><path data-scroll-draw d="M220 358H280V348H220Z"/><path data-scroll-draw d="M226 348C224 300 224 250 228 186"/><path data-scroll-draw d="M274 348C276 300 276 250 272 186"/><path data-scroll-draw d="M228 186 214 170H286L272 186"/><path data-scroll-draw d="M210 170H290V156H210Z"/>
+<path data-scroll-draw d="M462 372H538V358H462Z"/><path data-scroll-draw d="M470 358H530V348H470Z"/><path data-scroll-draw d="M476 348C474 300 474 250 478 186"/><path data-scroll-draw d="M524 348C526 300 526 250 522 186"/><path data-scroll-draw d="M478 186 464 170H536L522 186"/><path data-scroll-draw d="M460 170H540V156H460Z"/>
+<path data-scroll-draw d="M712 372H788V358H712Z"/><path data-scroll-draw d="M720 358H780V348H720Z"/><path data-scroll-draw d="M726 348C724 300 724 250 728 186"/><path data-scroll-draw d="M774 348C776 300 776 250 772 186"/><path data-scroll-draw d="M728 186 714 170H786L772 186"/><path data-scroll-draw d="M710 170H790V156H710Z"/>
+<path data-scroll-draw d="M104 156H896V130H104Z"/>
+<path data-scroll-draw d="M104 130H896V102H104Z"/>
+<path data-scroll-draw d="M90 102H910V84H90Z"/>
+<path data-scroll-draw d="M90 84 500 14 910 84"/>
+<path data-scroll-draw d="M124 80 500 32 876 80"/>
+</g>
 
-        // Mobile Menu Toggle
-        const btn = document.getElementById('mobile-menu-button');
-        const menu = document.getElementById('mobile-menu');
+<g stroke="currentColor" stroke-opacity=".22" stroke-width="1">
+<path d="M237 342V192"/><path d="M250 342V192"/><path d="M263 342V192"/>
+<path d="M487 342V192"/><path d="M500 342V192"/><path d="M513 342V192"/>
+<path d="M737 342V192"/><path d="M750 342V192"/><path d="M763 342V192"/>
+<path d="M150 128v-24M198 128v-24M246 128v-24M294 128v-24M342 128v-24M390 128v-24M438 128v-24M486 128v-24M534 128v-24M582 128v-24M630 128v-24M678 128v-24M726 128v-24M774 128v-24M822 128v-24"/>
+</g>
 
-        btn.addEventListener('click', () => {
-            menu.classList.toggle('hidden');
-        });
+<circle cx="500" cy="58" r="11" stroke="var(--accent-2)" stroke-opacity=".7"/>
 
-        // Close mobile menu when clicking a link
-        const mobileLinks = menu.querySelectorAll('a');
-        mobileLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                menu.classList.add('hidden');
-            });
-        });
+<g fill="var(--accent-2)">
+<circle class="bp-node" cx="250" cy="163" r="5.5"/>
+<circle class="bp-node" cx="500" cy="163" r="5.5"/>
+<circle class="bp-node" cx="750" cy="163" r="5.5"/>
+<circle class="bp-node" cx="500" cy="14" r="6"/>
+</g>
 
-        // Testimonial Carousel Logic
-        const slides = document.querySelectorAll('.testimonial-slide');
-        const dots = document.querySelectorAll('.dot-btn');
-        const prevBtn = document.getElementById('prev-slide');
-        const nextBtn = document.getElementById('next-slide');
-        let currentSlide = 0;
+<g fill="currentColor" fill-opacity=".45" font-family="Spline Sans Mono, monospace" font-size="13" letter-spacing="3" text-anchor="middle">
+<text x="250" y="464">I</text>
+<text x="500" y="464">II</text>
+<text x="750" y="464">III</text>
+</g>
+</svg></div>
+    <div class="bp-legend" data-group>
+      <div data-reveal="rise3d"><b>01 Intelligence</b><h3>Reading complexity</h3><p>The capacity to interpret what is actually happening.</p></div>
+      <div data-reveal="rise3d"><b>02 Systems</b><h3>Carrying the load</h3><p>The structure that turns capacity into coordinated action.</p></div>
+      <div data-reveal="rise3d"><b>03 Futures</b><h3>Holding the horizon</h3><p>The direction the whole structure is built toward.</p></div>
+    </div>
+  </div>
+</section>
 
-        function showSlide(index) {
-            // Handle bounds
-            if (index >= slides.length) currentSlide = 0;
-            else if (index < 0) currentSlide = slides.length - 1;
-            else currentSlide = index;
+<!-- IN HIS WORDS -->
+<section class="section surface-paper" id="dr-ebere-morgan-ph-d">
+  <div class="shell quote-shell" style="display:grid;justify-items:center;text-align:center;gap:clamp(1.5rem,3vw,2.25rem)">
+    <div style="max-width:4.5rem" data-reveal><svg class="art a-quote" viewBox="0 0 60 40" fill="var(--accent-2)" aria-hidden="true">
+<path d="M0 40V22C0 9 8 1 20 0l2 5c-6 2-9 8-9 12h9v23H0z"/>
+<path d="M33 40V22C33 9 41 1 53 0l2 5c-6 2-9 8-9 12h9v23H33z"/>
+</svg></div>
+    <blockquote class="statement__body" data-lit style="max-width:24ch;text-align:center;margin:0">Strong institutions do not exclusively depend on exceptional individuals. They are built on clarity, continuity, and governance intelligence.</blockquote>
+    <p class="kicker kicker--bare" data-reveal>Dr. Ebere Morgan, Ph.D.</p>
+    <div class="stickers" aria-hidden="true">
+      <span class="sticker sticker--a" data-reveal style="--d:0ms">
+        <svg viewBox="0 0 72 72" fill="none" aria-hidden="true">
+          <path class="sticker__badge" data-draw style="--len:220" d="M15 7c14-2 30-2 43 1 4 1 7 4 7 8 1 13 1 27 0 40-1 4-4 7-8 7-13 1-28 1-42 0-4 0-7-3-7-7-1-13-1-28 0-41 0-4 3-7 7-8z"/>
+          <path data-draw style="--len:120;--dd:520ms" d="M11 27 36 13l25 14z"/><path data-draw style="--len:90;--dd:660ms" d="M21 31v25M36 31v25M51 31v25"/><path data-draw style="--len:60;--dd:800ms" d="M12 59h48"/>
+        </svg>
+        <em>institutions</em>
+      </span>
+      <span class="sticker sticker--b" data-reveal style="--d:90ms">
+        <svg viewBox="0 0 72 72" fill="none" aria-hidden="true">
+          <path class="sticker__badge" data-draw style="--len:220" d="M15 7c14-2 30-2 43 1 4 1 7 4 7 8 1 13 1 27 0 40-1 4-4 7-8 7-13 1-28 1-42 0-4 0-7-3-7-7-1-13-1-28 0-41 0-4 3-7 7-8z"/>
+          <path data-draw style="--len:120;--dd:520ms" d="M17 45a19 19 0 0 1 38 0"/><path data-draw style="--len:80;--dd:660ms" d="M20 31a4 4 0 1 0 .1 0M36 25a4.5 4.5 0 1 0 .1 0M52 31a4 4 0 1 0 .1 0"/><path data-draw style="--len:44;--dd:800ms" d="M27 55h18"/>
+        </svg>
+        <em>not one person</em>
+      </span>
+      <span class="sticker sticker--c" data-reveal style="--d:180ms">
+        <svg viewBox="0 0 72 72" fill="none" aria-hidden="true">
+          <path class="sticker__badge" data-draw style="--len:220" d="M15 7c14-2 30-2 43 1 4 1 7 4 7 8 1 13 1 27 0 40-1 4-4 7-8 7-13 1-28 1-42 0-4 0-7-3-7-7-1-13-1-28 0-41 0-4 3-7 7-8z"/>
+          <path data-draw style="--len:150;--dd:520ms" d="M11 36s10-13 25-13 25 13 25 13-10 13-25 13-25-13-25-13z"/><path data-draw style="--len:60;--dd:700ms" d="M36 29a7 7 0 1 0 .1 0"/><path data-draw style="--len:40;--dd:840ms" d="M36 14v-5M55 21l4-4M17 21l-4-4"/>
+        </svg>
+        <em>clarity</em>
+      </span>
+      <span class="sticker sticker--d" data-reveal style="--d:270ms">
+        <svg viewBox="0 0 72 72" fill="none" aria-hidden="true">
+          <path class="sticker__badge" data-draw style="--len:220" d="M15 7c14-2 30-2 43 1 4 1 7 4 7 8 1 13 1 27 0 40-1 4-4 7-8 7-13 1-28 1-42 0-4 0-7-3-7-7-1-13-1-28 0-41 0-4 3-7 7-8z"/>
+          <path data-draw style="--len:170;--dd:520ms" d="M20 36c0-6 4-11 9-11 7 0 9 6 15 11s8 11 14 11 9-5 9-11-4-11-9-11c-6 0-8 6-14 11s-8 11-15 11c-5 0-9-5-9-11z"/>
+        </svg>
+        <em>continuity</em>
+      </span>
+      <span class="sticker sticker--e" data-reveal style="--d:360ms">
+        <svg viewBox="0 0 72 72" fill="none" aria-hidden="true">
+          <path class="sticker__badge" data-draw style="--len:220" d="M15 7c14-2 30-2 43 1 4 1 7 4 7 8 1 13 1 27 0 40-1 4-4 7-8 7-13 1-28 1-42 0-4 0-7-3-7-7-1-13-1-28 0-41 0-4 3-7 7-8z"/>
+          <path data-draw style="--len:130;--dd:520ms" d="M36 15a21 21 0 1 0 .1 0"/><path data-draw style="--len:80;--dd:700ms" d="M36 22 43 36 36 50 29 36z"/><path data-draw style="--len:36;--dd:840ms" d="M36 36h.01"/>
+        </svg>
+        <em>judgment</em>
+      </span>
+    </div>
+  </div>
 
-            // Update Slides
-            slides.forEach((slide, i) => {
-                if (i === currentSlide) {
-                    slide.classList.remove('hidden');
-                    setTimeout(() => slide.classList.add('active'), 50); // slight delay for fade effect
-                } else {
-                    slide.classList.remove('active');
-                    slide.classList.add('hidden');
-                }
-            });
+  <!-- closing marquee: belongs to the quote section, full-bleed -->
+  <div class="ribbon3d" aria-hidden="true">
+  <div class="ribbon3d__row"><div class="ribbon3d__track">
+    <span class="ribbon3d__word">Intelligence</span><span class="ribbon3d__word">Excellence</span><span class="ribbon3d__word">Transcendence</span>
+    <span class="ribbon3d__word">Intelligence</span><span class="ribbon3d__word">Excellence</span><span class="ribbon3d__word">Transcendence</span>
+  </div></div>
+  <div class="ribbon3d__row"><div class="ribbon3d__track">
+    <span class="ribbon3d__word">Continuity</span><span class="ribbon3d__word">Resilience</span><span class="ribbon3d__word">Futures</span>
+    <span class="ribbon3d__word">Continuity</span><span class="ribbon3d__word">Resilience</span><span class="ribbon3d__word">Futures</span>
+  </div></div>
+</div>
+</section>
 
-            // Update Dots
-            dots.forEach((dot, i) => {
-                if (i === currentSlide) {
-                    dot.classList.remove('w-2', 'bg-gray-600', 'hover:bg-gray-400');
-                    dot.classList.add('w-6', 'bg-brand-accent');
-                } else {
-                    dot.classList.remove('w-6', 'bg-brand-accent');
-                    dot.classList.add('w-2', 'bg-gray-600', 'hover:bg-gray-400');
-                }
-            });
-        }
 
-        prevBtn.addEventListener('click', () => showSlide(currentSlide - 1));
-        nextBtn.addEventListener('click', () => showSlide(currentSlide + 1));
+<!-- SCALE -->
+<section class="section surface-ink" id="where-the-work-lands">
+  <div class="shell">
+    <div style="display:flex;flex-wrap:wrap;gap:1.5rem;align-items:end;justify-content:space-between;margin-bottom:clamp(2rem,4vw,3rem)">
+      <div>
+        <p class="kicker" data-reveal>The work in the world</p>
+        <h2 class="big" data-reveal style="--d:80ms;margin-top:1rem">Where the work lands</h2>
+      </div>
+      <button class="railnav" type="button" data-rail-next aria-controls="work-rail" data-reveal>
+        <span>Drag or tap</span>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12h15M13.5 6 20 12l-6.5 6"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="railwrap">
+    <div class="rail" id="work-rail" data-rail>
+      <a class="tile" href="services.html#national"><img src="https://images.unsplash.com/photo-1580060839134-75a5edca2e99?auto=format&fit=crop&w=700&h=880&q=70" alt="Governments" width="700" height="880" loading="lazy" decoding="async"><div class="tile__cap"><p class="tile__no">01</p><p class="tile__t">Governments<svg class="tile__go ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></p></div></a>
+      <a class="tile" href="services.html#formation"><img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=700&h=880&q=70" alt="Universities" width="700" height="880" loading="lazy" decoding="async"><div class="tile__cap"><p class="tile__no">02</p><p class="tile__t">Universities<svg class="tile__go ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></p></div></a>
+      <a class="tile" href="services.html#strategy"><img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=700&h=880&q=70" alt="Enterprises" width="700" height="880" loading="lazy" decoding="async"><div class="tile__cap"><p class="tile__no">03</p><p class="tile__t">Enterprises<svg class="tile__go ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></p></div></a>
+      <a class="tile" href="services.html#formation"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=700&h=880&q=70" alt="Leadership Academies" width="700" height="880" loading="lazy" decoding="async"><div class="tile__cap"><p class="tile__no">04</p><p class="tile__t">Leadership Academies<svg class="tile__go ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></p></div></a>
+      <a class="tile" href="services.html#national"><img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=700&h=880&q=70" alt="Community Initiatives" width="700" height="880" loading="lazy" decoding="async"><div class="tile__cap"><p class="tile__no">05</p><p class="tile__t">Community Initiatives<svg class="tile__go ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></p></div></a>
+      <a class="tile" href="services.html#national"><img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=700&h=880&q=70" alt="International Development" width="700" height="880" loading="lazy" decoding="async"><div class="tile__cap"><p class="tile__no">06</p><p class="tile__t">International Development<svg class="tile__go ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></p></div></a>
+      <a class="tile" href="services.html#advisory"><img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=700&h=880&q=70" alt="Executive Boards" width="700" height="880" loading="lazy" decoding="async"><div class="tile__cap"><p class="tile__no">07</p><p class="tile__t">Executive Boards<svg class="tile__go ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></p></div></a>
+      <a class="tile" href="services.html#forums"><img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=700&h=880&q=70" alt="Global Forums" width="700" height="880" loading="lazy" decoding="async"><div class="tile__cap"><p class="tile__no">08</p><p class="tile__t">Global Forums<svg class="tile__go ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></p></div></a>
+      <a class="tile" href="services.html#formation"><img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=700&h=880&q=70" alt="Emerging Leaders" width="700" height="880" loading="lazy" decoding="async"><div class="tile__cap"><p class="tile__no">09</p><p class="tile__t">Emerging Leaders<svg class="tile__go ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></p></div></a>
+      <a class="tile" href="services.html#national"><img src="https://images.unsplash.com/photo-1580060839134-75a5edca2e99?auto=format&fit=crop&w=700&h=880&q=70" alt="Public Sector" width="700" height="880" loading="lazy" decoding="async"><div class="tile__cap"><p class="tile__no">10</p><p class="tile__t">Public Sector<svg class="tile__go ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></p></div></a></div>
+  </div>
+  <div class="shell" style="margin-top:clamp(2.5rem,5vw,4rem)">
+    <div class="dials" data-group>
+      <div class="dialstat" style="--off:100">
+        <div class="dialstat__ring">
+          <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="t" cx="50" cy="50" r="48"/><circle class="p" cx="50" cy="50" r="48"/></svg>
+          <span class="dialstat__n"><span data-count="05">00</span></span>
+        </div>
+        <p class="dialstat__l">Board &amp; advisory seats</p>
+      </div>
+      <div class="dialstat" style="--off:120">
+        <div class="dialstat__ring">
+          <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="t" cx="50" cy="50" r="48"/><circle class="p" cx="50" cy="50" r="48"/></svg>
+          <span class="dialstat__n"><span data-count="06">00</span></span>
+        </div>
+        <p class="dialstat__l">Professional bodies</p>
+      </div>
+      <div class="dialstat" style="--off:60">
+        <div class="dialstat__ring">
+          <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="t" cx="50" cy="50" r="48"/><circle class="p" cx="50" cy="50" r="48"/></svg>
+          <span class="dialstat__n"><span data-count="03">00</span></span>
+        </div>
+        <p class="dialstat__l">Executive certifications</p>
+      </div>
+      <div class="dialstat" style="--off:170">
+        <div class="dialstat__ring">
+          <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="t" cx="50" cy="50" r="48"/><circle class="p" cx="50" cy="50" r="48"/></svg>
+          <span class="dialstat__n"><span data-count="2010">00</span></span>
+        </div>
+        <p class="dialstat__l">In governance since</p>
+      </div></div>
+  </div>
+</section>
 
-        dots.forEach((dot, index) => {
-            dot.addEventListener('click', () => showSlide(index));
-        });
-    </script>
+<!-- CODEX + INSIGHTS -->
+<section class="section surface-ink-2" id="insights">
+  <div class="shell duo" data-group>
+    <a class="feature" href="insights.html" data-reveal data-tilt="4">
+      <img src="https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?auto=format&fit=crop&w=1000&h=900&q=70" alt="Insights: essays and future briefings" width="1000" height="900" loading="lazy" decoding="async">
+      <p class="kicker kicker--bare">Insights</p>
+      <h3 class="big feature__t">Ideas. Essays.<br>Futures.</h3>
+      <p class="feature__x">Ideas shape systems. Systems shape societies. Societies shape futures.</p>
+      <p style="margin-top:1.5rem"><span class="btn btn--ghost">Explore Insights<svg class="ico ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.15" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></span></p>
+    </a>
+    <a class="feature" href="codex.html" data-reveal data-tilt="4">
+      <img src="https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=1000&h=900&q=70" alt="The Leadership Codex" width="1000" height="900" loading="lazy" decoding="async">
+      <p class="kicker kicker--bare">Codex</p>
+      <h3 class="big feature__t">The Leadership<br>Codex&trade;</h3>
+      <p class="feature__x">Frameworks, systems and research beneath the practice.</p>
+      <p style="margin-top:1.5rem"><span class="btn btn--ghost">Explore the Codex<svg class="ico ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.15" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></span></p>
+    </a>
+  </div>
+</section>
+
+<section class="phero phero--closing" style="min-height:auto;padding-block:clamp(6rem,12vw,10rem);align-items:center;text-align:center" id="let-s-build-what-endures">
+  <div class="phero__bg"><img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1800&h=1000&q=70" alt="" width="1800" height="1000" loading="lazy" decoding="async"></div>
+  <div class="shell" style="display:grid;justify-items:center;gap:1.5rem;position:relative">
+    <div class="badge" style="position:relative;margin-bottom:.5rem" data-reveal="scale"><svg class="badge__svg" viewBox="0 0 100 100" aria-hidden="true">
+<defs><path id="bp-home" d="M50 50m-37 0a37 37 0 1 1 74 0a37 37 0 1 1-74 0"/></defs>
+<g class="badge__spin"><text><textPath href="#bp-home" startOffset="0">Intelligence &#183; Excellence &#183; Transcendence &#183; </textPath></text></g>
+<circle cx="50" cy="50" r="3.5" fill="var(--accent-2)"/>
+<circle cx="50" cy="50" r="14" fill="none" stroke="var(--accent-2)" stroke-opacity=".35" stroke-dasharray="2 5"/>
+</svg></div>
+    <h2 class="giant" data-reveal style="--d:80ms">Let's build <span class='em'>what endures</span></h2>
+    <p class="lede" style="max-width:52ch;text-align:center" data-reveal style="--d:160ms">Advisory, institutional partnership, speaking, or research. It begins with a conversation.</p>
+    <div class="phero__cta" data-reveal style="--d:240ms">
+      <a class="btn" href="engage.html" data-magnetic>Initiate Engagement<svg class="ico ico--draw" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.15" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg></a>
+      <a class="btn btn--ghost" href="services.html" data-magnetic>Explore the Work</a>
+    </div>
+  </div>
+</section></main>
+
+<footer class="footer">
+  <div class="shell footer__top">
+    <div class="footer__brand">
+      <a class="mark" href="index.html" aria-label="Dr. Morgan, home"><img class="mark__img mark__img--onlight" src="assets/img/headerlogo-dark.png" alt="Dr Morgan" width="560" height="150" decoding="async"><img class="mark__img mark__img--ondark" src="assets/img/headerlogo-light.png" alt="" aria-hidden="true" width="560" height="150" decoding="async"></a>
+      <p class="footer__tag">Intelligence. Excellence. Transcendence.</p>
+      <p class="footer__meta">Founder, LIFT Global, Inc. Leadership ecosystems across institutions, organizations and generations.</p>
+    </div>
+    <nav aria-label="Footer">
+      <p class="footer__h">Navigate</p>
+      <ul class="footer__l">
+        <li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li>
+        <li><a href="services.html">Services</a></li><li><a href="methodology.html">Methodology</a></li>
+        <li><a href="insights.html">Insights</a></li><li><a href="codex.html">Codex</a></li>
+        <li><a href="engage.html">Engage</a></li>
+      </ul>
+    </nav>
+    <div>
+      <p class="footer__h">The Work</p>
+      <ul class="footer__l">
+        <li>Leadership Intelligence</li><li>Leadership Systems</li><li>Leadership Futures</li>
+        <li>The Leadership Codex&trade;</li><li>CIVITAS&trade; &#183; VANGUARD&trade; &#183; SUMMIT&trade;</li>
+      </ul>
+    </div>
+    <div>
+      <p class="footer__h">Contact</p>
+      <ul class="footer__l">
+        <li><a href="mailto:drmorgan@drmorgan.ai">drmorgan@drmorgan.ai</a></li>
+        <li><a href="tel:+17244000700">+1 (724) 400-0700</a></li>
+        <li>Dallas, Texas, USA</li>
+        <li><a href="https://www.linkedin.com/in/eberemorgan" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="shell footer__bottom">
+    <p>&copy; <span data-year>2026</span> Dr. Morgan. All rights reserved.</p>
+    <p class="footer__legal"><a href="privacy.html">Privacy Policy</a><span aria-hidden="true">&middot;</span><a href="terms.html">Terms of Use</a></p>
+    <div class="footer__soc">
+      <a href="https://www.linkedin.com/in/eberemorgan" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm6 0h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95C20.6 8.75 22 11 22 14.3V21h-4v-6c0-1.6-.03-3.66-2.25-3.66-2.25 0-2.6 1.74-2.6 3.54V21H9V9Z"/></svg></a>
+      <a href="mailto:drmorgan@drmorgan.ai" aria-label="Email"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.15" aria-hidden="true"><path d="M2.5 4.5h15v11h-15z"/><path d="m2.5 4.5 7.5 5.6 7.5-5.6"/></svg></a>
+    </div>
+    <p><a href="https://wopara.com" target="_blank" rel="noopener noreferrer">Website by Wopara Group</a></p>
+  </div>
+  <p class="footer__ghost" aria-hidden="true">DRMORGAN</p>
+</footer>
+
+<div class="ask" data-ask>
+  <div class="ask__panel" data-ask-panel role="dialog" aria-label="Get help with this site" aria-hidden="true">
+    <div class="ask__head">
+      <p>Get Help</p>
+      <h2>Ask about the work</h2>
+      <button class="ask__close" type="button" data-ask-close aria-label="Close">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg>
+      </button>
+    </div>
+    <div class="ask__body" data-ask-body></div>
+    <form class="ask__form" data-ask-form>
+      <input type="text" data-ask-input placeholder="Type your question..." aria-label="Type your question" autocomplete="off">
+      <button class="ask__send" type="submit" aria-label="Send">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.15" aria-hidden="true"><path d="M4.4 15.6 15.6 4.4M6.6 4.4h9v9"/></svg>
+      </button>
+    </form>
+    <p class="ask__note">Answers come from this site&#8217;s own pages, with links to where they came from.</p>
+  </div>
+  <button class="ask__btn" type="button" data-ask-toggle aria-expanded="false"><svg class="ask__ico" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13.7 9.5a1.9 1.9 0 0 1-1.9 1.9H6L2.3 13.9V4.3a1.9 1.9 0 0 1 1.9-1.9h7.6a1.9 1.9 0 0 1 1.9 1.9z"/><path d="M5.4 5.9h5.2M5.4 8.3h3.2"/></svg><svg class="ask__jump" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.8v10.4M3.6 9l4.4 4.4L12.4 9"/></svg><span data-ask-txt>Get Help</span></button>
+</div>
+
+<script src="assets/js/site.js" defer></script>
 </body>
 </html>
