@@ -31,16 +31,22 @@
      still points at it — by the time the editor is asked for, it does not. */
   var MY_SRC = (document.currentScript && document.currentScript.src) || "";
 
-  /* BUMP THIS WHENEVER opaline.css OR opaline-editor.js CHANGES.
+  /* The version, taken from this file's own URL where the page gave it one:
 
-     Both are fetched by URL when the editor opens, and a browser that has
-     seen them before will happily use the copy it already has — for days.
-     That is right for a file that never changes and wrong for these two:
-     a fix to the stylesheet reached nobody who had already opened the
-     editor once, and the bug it fixed went on being reported after it had
-     been fixed. The version rides along as a query so a new one is a new
-     URL, and an unchanged one is still served from cache. */
-  var VERSION = "2026-08-10";
+       <script src="js/opaline-overlay.js?v=2026-08-10"></script>
+
+     It is passed on to opaline.css and opaline-editor.js, which are
+     fetched by URL when the editor opens and which a cache will otherwise
+     hold for days. A fix to the stylesheet reached nobody who had already
+     opened the editor once, and the bug it fixed went on being reported
+     after it had been fixed.
+
+     Reading it off the tag rather than hardcoding it means ONE place to
+     change — the tag in the HTML — and the HTML is the one thing a CDN in
+     front of a static site does not usually cache, so a new version
+     actually arrives. The constant below is only the fallback for a page
+     whose tag carries no version at all. */
+  var VERSION = (/[?&]v=([^&]+)/.exec(MY_SRC) || [])[1] || "2026-08-10";
 
   /* Everything the host site can decide. A missing config is a valid
      config: every field below falls back to something that works. */
@@ -1279,7 +1285,7 @@
   function watchTheme() {
     if (watchingTheme || !window.MutationObserver) return;
     watchingTheme = true;
-    new MutationObserver(function () { paintAccent(); })
+    new MutationObserver(function () { paintAccent(); markInk(); })
       .observe(document.documentElement, {
         attributes: true,
         attributeFilter: ["class", "data-theme", "data-color-scheme", "data-mode"]
@@ -1383,13 +1389,24 @@
       document.head.appendChild(sheet);
     }
 
-    /* One mark, two grounds. It is a black PNG, so on a dark footer it has
-       to be turned inside out or it is a hole in the page — which is what
-       it was. Decided from the colour the door will actually inherit,
-       rather than from a guess about the site's theme, because a light
-       site with a dark footer is a common thing and a guess gets it
-       backwards. */
-    var ink = rgbOf(getComputedStyle(home).color);
+    doorHome = home;
+    markInk();
+  }
+
+  /* One mark, two grounds. It is a black PNG, so on a dark footer it has to
+     be turned inside out or it is a hole in the page — which is what it
+     was. Decided from the colour the door will actually inherit, rather
+     than from a guess about the site's theme, because a light site with a
+     dark footer is a common thing and a guess gets it backwards.
+
+     Taken again whenever the site changes theme, since a footer that is
+     dark in one and pale in the other would otherwise keep whichever
+     answer happened to be true when the page first loaded. */
+  var doorHome = null;
+
+  function markInk() {
+    if (!doorHome || !doorHome.isConnected) return;
+    var ink = rgbOf(getComputedStyle(doorHome).color);
     var light = ink ? luminance(ink) > 0.45 : true;
     document.documentElement.style.setProperty(
       "--opl-door-mark", light ? "brightness(0) invert(1)" : "brightness(0)"
@@ -1404,6 +1421,7 @@
     if (!home) return;
 
     doorStyles(home);
+    watchTheme();
 
     var a = document.createElement("a");
     a.href = "#";
