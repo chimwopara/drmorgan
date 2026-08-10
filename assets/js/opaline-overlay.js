@@ -1062,6 +1062,220 @@
      ------------------------------------------------------------------ */
 
   /* ------------------------------------------------------------------
+     The accent
+     ------------------------------------------------------------------
+     Opaline's own chrome — the bar, the dashed boxes, the buttons, the
+     reel on the password screen — is drawn in one accent colour, and
+     that colour should be the site's own. A workbench that turns up in
+     somebody else's brand looks like a tool bolted to the page. One in
+     the site's colour looks like part of it.
+
+     It is asked for three ways, in the order the answer can be trusted:
+
+       1. `accent` in the config. Nothing beats being told.
+       2. A custom property on :root with an accent-ish name — resolved
+          through however many other properties it points at, because
+          sites routinely write --accent: var(--clay).
+       3. The colour the site's own links and buttons actually are.
+
+     An answer is refused if it cannot do the job. A near-grey has no hue
+     to lend. What survives but is too dark to see against Opaline's own
+     dark chrome is LIFTED rather than refused: a brand colour a little
+     lighter is still recognisably the brand, and throwing it away would
+     put a stranger's colour on their page instead.
+
+     Deep blue is the fallback — the one hue that sits quietly beside
+     almost any brand without pretending to belong to it.
+     ------------------------------------------------------------------ */
+
+  var ACCENT_FALLBACK = [47, 90, 140];        // #2F5A8C
+  var CHROME_INK = [22, 24, 28];              // --opl-ink, what the accent sits on
+
+  var ACCENT_NAMES = [
+    "--opl-accent-source",                    // for a site that wants to say outright
+    "--accent", "--accent-2", "--accent-color", "--color-accent",
+    "--brand", "--brand-color", "--color-brand", "--brand-primary",
+    "--primary", "--primary-color", "--color-primary",
+    "--highlight", "--link", "--link-color"
+  ];
+
+  var probe = null;
+
+  /* Resolved by the browser rather than by hand: a value of "var(--clay)"
+     is worked out against this page exactly as the page works it out,
+     however many hops it takes to get to a colour. */
+  function resolveColour(value) {
+    if (!value) return null;
+    if (!probe) {
+      probe = document.createElement("span");
+      probe.setAttribute("aria-hidden", "true");
+      probe.style.cssText = "position:absolute;left:-9999px;top:-9999px;width:0;height:0";
+    }
+    if (!probe.isConnected) document.documentElement.appendChild(probe);
+    probe.style.color = "";
+    probe.style.color = value;
+    if (!probe.style.color) return null;      // not a colour at all
+    return rgbOf(getComputedStyle(probe).color);
+  }
+
+  function rgbOf(str) {
+    var m = /^rgba?\(([^)]+)\)/.exec(String(str || "").trim());
+    if (!m) return null;
+    var parts = m[1].split(/[\s,\/]+/).filter(Boolean).map(parseFloat);
+    if (parts.length < 3 || parts.slice(0, 3).some(isNaN)) return null;
+    if (parts.length > 3 && parts[3] === 0) return null;   // fully transparent says nothing
+    return [parts[0], parts[1], parts[2]];
+  }
+
+  function toHsl(rgb) {
+    var r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+    var l = (max + min) / 2, h = 0, s = 0;
+    if (max !== min) {
+      var d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+      else if (max === g) h = (b - r) / d + 2;
+      else h = (r - g) / d + 4;
+      h /= 6;
+    }
+    return [h, s, l];
+  }
+
+  function fromHsl(h, s, l) {
+    function channel(p, q, t) {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    }
+    if (s === 0) { var v = Math.round(l * 255); return [v, v, v]; }
+    var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    var p = 2 * l - q;
+    return [
+      Math.round(channel(p, q, h + 1 / 3) * 255),
+      Math.round(channel(p, q, h) * 255),
+      Math.round(channel(p, q, h - 1 / 3) * 255)
+    ];
+  }
+
+  function luminance(rgb) {
+    var c = rgb.map(function (v) {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  }
+
+  function contrast(a, b) {
+    var x = luminance(a), y = luminance(b);
+    return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+  }
+
+  /* Lifted until it can be seen on the chrome it will sit on. */
+  function legible(rgb) {
+    var hsl = toHsl(rgb);
+    var guard = 0;
+    while (contrast(rgb, CHROME_INK) < 2.6 && hsl[2] < 0.82 && guard++ < 30) {
+      hsl[2] = Math.min(0.82, hsl[2] + 0.03);
+      rgb = fromHsl(hsl[0], hsl[1], hsl[2]);
+    }
+    return rgb;
+  }
+
+  function usable(rgb) {
+    if (!rgb) return null;
+    var hsl = toHsl(rgb);
+    if (hsl[1] < 0.18) return null;                    // a grey has no hue to lend
+    if (hsl[2] < 0.1 || hsl[2] > 0.92) return null;    // too near black or white to be a colour
+    return legible(rgb);
+  }
+
+  function fromNames() {
+    for (var i = 0; i < ACCENT_NAMES.length; i++) {
+      var raw = getComputedStyle(document.documentElement).getPropertyValue(ACCENT_NAMES[i]);
+      if (!raw || !raw.trim()) continue;
+      var ok = usable(resolveColour(raw.trim()));
+      if (ok) return ok;
+    }
+    return null;
+  }
+
+  /* Last resort: what the site's own links and buttons are actually
+     painted. Counted rather than taken first, because the commonest
+     usable colour among the things a reader clicks is a better guess at
+     a brand than whichever one happens to be nearest the top. */
+  function fromPage() {
+    var seen = {};
+    var els = document.querySelectorAll("a[href], button, [class*='btn'], [class*='button']");
+    for (var i = 0; i < els.length && i < 150; i++) {
+      var el = els[i];
+      if (el.closest && el.closest("#opl-bar, #opl-panel, #opl-sheet, #opl-gate, .opl-popup")) continue;
+      var cs = getComputedStyle(el);
+      [cs.color, cs.backgroundColor, cs.borderTopColor].forEach(function (c) {
+        var ok = usable(rgbOf(c));
+        if (ok) seen[ok.join(",")] = (seen[ok.join(",")] || 0) + 1;
+      });
+    }
+    var best = null, most = 0;
+    Object.keys(seen).forEach(function (k) { if (seen[k] > most) { most = seen[k]; best = k; } });
+    return best ? best.split(",").map(Number) : null;
+  }
+
+  function hex(rgb) {
+    return "#" + rgb.map(function (v) {
+      return ("0" + Math.max(0, Math.min(255, Math.round(v))).toString(16)).slice(-2);
+    }).join("");
+  }
+
+  function pickAccent() {
+    /* Told is told: honoured even where it would have been refused if it
+       had only been guessed at, and made legible either way. */
+    var told = resolveColour(CONFIG.accent);
+    if (told) return legible(told);
+    return fromNames() || fromPage() || ACCENT_FALLBACK;
+  }
+
+  var painted = null;
+
+  function paintAccent() {
+    var rgb = pickAccent();
+    var value = hex(rgb);
+    if (value === painted) return value;
+    painted = value;
+
+    var root = document.documentElement;
+    root.style.setProperty("--opl-accent", value);
+    /* Whether a label on top of it should be dark or light. A picker
+       cannot answer this and a guess gets it wrong on exactly the bright
+       brands that most need it right. */
+    root.style.setProperty("--opl-accent-ink", luminance(rgb) > 0.45 ? "#16181c" : "#ffffff");
+    return value;
+  }
+
+  /* Sites switch themselves between light and dark, and a good many
+     define their accent differently in each — a blue that reads on paper
+     is not the blue that reads on ink. So the answer is taken again when
+     the site says its theme has changed.
+
+     The filter deliberately excludes "style", which is the attribute
+     paintAccent itself writes: watching it would mean answering our own
+     change forever. */
+  var watchingTheme = false;
+
+  function watchTheme() {
+    if (watchingTheme || !window.MutationObserver) return;
+    watchingTheme = true;
+    new MutationObserver(function () { paintAccent(); })
+      .observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["class", "data-theme", "data-color-scheme", "data-mode"]
+      });
+  }
+
+  /* ------------------------------------------------------------------
      The way in. The editor is a large file and a reader has no use for
      it, so it is fetched only when she asks for it, or when this browser
      is already carrying a session from her last visit.
@@ -1080,6 +1294,11 @@
          folder it was copied into. Neither needs configuring. */
       var here = (document.currentScript && document.currentScript.src) || MY_SRC || "";
       var base = here.replace(/[^/]*$/, "");
+
+      /* Before the stylesheet, not after: the chrome should arrive already
+         wearing this site's colour rather than flashing a default first. */
+      paintAccent();
+      watchTheme();
 
       var css = document.createElement("link");
       css.rel = "stylesheet";
@@ -1100,12 +1319,80 @@
      add a link, so Opaline puts one there itself — beside the maker's
      credit in the footer, which is where it belongs and where nobody
      looking for a shop or a phone number will trip over it. */
+  /* The door's own styles, and the only ones a visitor ever gets: this
+     file runs for everybody, opaline.css does not. Without them the door
+     is a full-size black logo pushed hard against whatever it was put
+     beside — which is exactly what it looked like.
+
+     Everything is sized in em and inherits colour, so it takes the type
+     of the credit line it stands next to instead of importing a look of
+     its own. The margin is its own rather than the container's, because
+     the container may not have thought about gaps at all. */
+  function doorStyles(home) {
+    var sheet = document.getElementById("opl-door-css");
+    if (!sheet) {
+      sheet = document.createElement("style");
+      sheet.id = "opl-door-css";
+      /* The three properties that decide whether this reads as one line
+         are marked !important, and that is not laziness.
+
+         Opaline lands in footers it has never seen, and a footer that
+         styles its own links — `.footer__bottom a { display:inline-block }`
+         is an ordinary thing to write — outranks a single class selector
+         and wins. When it does, the flex row collapses, the gap stops
+         applying, and "Edit with [mark] Opaline" breaks into three lines
+         with the mark stranded on its own. Which is exactly what it did.
+
+         Everything cosmetic is left overridable on purpose: a site may
+         quite reasonably want the door dimmer, or in its own colour. Only
+         the layout is defended, because a door nobody can read is not a
+         door. */
+      sheet.textContent =
+        ".opaline-door{" +
+          "display:inline-flex!important;align-items:center;gap:.34em;" +
+          /* Never abuts the credit it stands beside, whatever it was
+             appended into: a flex row with its own gap adds to this, and
+             a paragraph that has no gap at all still gets one. */
+          "margin-left:1.35em!important;" +
+          "white-space:nowrap!important;" +
+          "vertical-align:middle;" +
+          "font:inherit;color:inherit;text-decoration:none;" +
+          "opacity:.6;transition:opacity .25s ease}" +
+        ".opaline-door:hover{opacity:1}" +
+        /* The file carries a wide transparent margin, the same one the
+           maker's credit mark beside it carries, so it is scaled up
+           inside its own footprint rather than given a bigger box. */
+        ".opaline-mark{" +
+          "width:1.15em!important;height:1.15em!important;" +
+          "object-fit:contain;flex:none;display:block;" +
+          "transform:scale(1.5);" +
+          "filter:var(--opl-door-mark,brightness(0));" +
+          "opacity:.85;transition:opacity .25s ease}" +
+        ".opaline-door:hover .opaline-mark{opacity:1}";
+      document.head.appendChild(sheet);
+    }
+
+    /* One mark, two grounds. It is a black PNG, so on a dark footer it has
+       to be turned inside out or it is a hole in the page — which is what
+       it was. Decided from the colour the door will actually inherit,
+       rather than from a guess about the site's theme, because a light
+       site with a dark footer is a common thing and a guess gets it
+       backwards. */
+    var ink = rgbOf(getComputedStyle(home).color);
+    var light = ink ? luminance(ink) > 0.45 : true;
+    document.documentElement.style.setProperty(
+      "--opl-door-mark", light ? "brightness(0) invert(1)" : "brightness(0)"
+    );
+  }
+
   function fitDoor() {
     var d = CONFIG.door || {};
     if (document.querySelector("[data-opaline]")) return;
 
     var home = document.querySelector(d.into || ".footer-credit, footer .credit, footer");
     if (!home) return;
+
+    doorStyles(home);
 
     var a = document.createElement("a");
     a.href = "#";
@@ -1172,6 +1459,9 @@
     cssProps: CSS_PROPS,
     screens: SCREENS,
     fingerprint: fingerprint,
+    /* The accent Opaline decided to wear, as a hex string. The editor uses
+       it where a colour has to be computed rather than inherited. */
+    accent: paintAccent,
     youtubeId: youtubeId,
     embedId: embedId,
     isVideoFrame: isVideoFrame,

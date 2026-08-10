@@ -224,7 +224,11 @@ exports.store = onRequest(
         if (!item) { res.status(404).json({ error: "That title is not on sale." }); return; }
 
         const key = STRIPE_SECRET_KEY.value();
-        if (!key) {
+        /* Deploying requires every declared secret to hold something, so
+           until Stripe is wired this carries a placeholder. A placeholder
+           should produce "the shop is not switched on", not a 502 from
+           Stripe having been handed nonsense. Real keys begin sk_. */
+        if (!key || key.indexOf("sk_") !== 0) {
           logger.error("checkout attempted with no Stripe key set");
           res.status(503).json({ error: "The shop is not switched on yet. Please email drmorgan@drmorgan.ai." });
           return;

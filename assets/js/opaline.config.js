@@ -27,10 +27,13 @@ window.OpalineConfig = {
   /* --- the way in --------------------------------------------------- */
 
   door: {
-    /* Beside "Website by Wopara Group" in the footer's bottom row, which
-       is the last <p> of that row on every page. Quiet, consistent with
-       Wopara's other work, and nowhere a visitor is looking. */
-    into: ".footer__bottom p:last-of-type",
+    /* Beside "Website by Wopara Group", but as its own item in the footer's
+       bottom row rather than inside that paragraph. Appended into the <p> it
+       inherited the last flex item's width, which is only as wide as the
+       credit itself: the door broke across three lines and its last word ran
+       straight into "Wopara Group". As a sibling it takes the row's own gap.
+       Quiet either way, and nowhere a visitor is looking. */
+    into: ".footer__bottom",
     label: "",                   // empty: the mark stands in for the name
     editingLabel: "Stop editing",
     hotkey: "e",                 // Ctrl/Cmd + Shift + E

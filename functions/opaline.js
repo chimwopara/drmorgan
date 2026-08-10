@@ -89,6 +89,29 @@ function originAllowed(site, origin) {
 }
 
 
+/* How often one caller has done a thing lately.
+
+   Per-instance and therefore approximate, which is the right trade: it
+   costs nothing, and what it guards is a password box whose real defence
+   is the password. It exists so that guessing is not worth anybody's
+   afternoon, not so that it is impossible.
+
+   This lived in the host site's own functions file until the server was
+   split out into a package, and did not come with it — which meant the
+   first line of the login path threw, and every self-hosted install
+   answered "that could not be completed just now" to the correct
+   password. Anything the request path calls has to live beside it. */
+const recent = new Map();
+
+function tooOften(key, limit, windowMs) {
+  const now = Date.now();
+  const hits = (recent.get(key) || []).filter((t) => now - t < windowMs);
+  hits.push(now);
+  recent.set(key, hits);
+  if (recent.size > 5000) recent.clear();
+  return hits.length > limit;
+}
+
 /* No password lives in this file, and none ever should.
 
    Self-hosted, it is in Secret Manager. Hosted, it is the hash the
@@ -129,6 +152,15 @@ function passwordHash(site) {
   if (MODE === "hosted") return (site.doc && site.doc.passwordHash) || null;
   const set = EDITOR_PASSWORD.value();
   return set ? sha256(set) : null;
+}
+
+/* A key that is not a key is not a key. Deploying requires every declared
+   secret to hold SOMETHING, so a site that has not bought the assistant
+   yet still has to put a value here — and the honest thing for a
+   placeholder to produce is "not connected", not a 502 from an upstream
+   that was handed nonsense. Real DeepSeek keys begin sk-. */
+function aiReady(key) {
+  return typeof key === "string" && key.indexOf("sk-") === 0 && key.length > 12;
 }
 
 function sameSecret(a, b) {
@@ -717,7 +749,7 @@ exports.opaline = onRequest(
         }
 
         const key = DEEPSEEK_API_KEY.value();
-        if (!key) { res.status(503).json({ error: "The assistant is not connected yet." }); return; }
+        if (!aiReady(key)) { res.status(503).json({ error: "The assistant is not connected yet." }); return; }
 
         const context = {
           page: String((body.context && body.context.page) || "").slice(0, 60),

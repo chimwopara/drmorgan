@@ -22,7 +22,12 @@
   --opl-line: rgba(255, 255, 255, 0.14);
   --opl-text: #f2f0ec;
   --opl-mute: #a8a49c;
-  --opl-accent: #B86F52;
+  /* Overwritten at run time by opaline-overlay.js with the accent of
+     whatever site this is standing on. Deep blue is what is used when the
+     site has no accent worth borrowing: the one hue that sits quietly
+     beside almost any brand without pretending to belong to it. */
+  --opl-accent: #2F5A8C;
+  --opl-accent-ink: #ffffff;
   --opl-accent-2: #6E8F7B;
   --opl-gold: #B9905C;
   --opl-shadow: 0 24px 70px -20px rgba(0, 0, 0, 0.6);
@@ -41,7 +46,7 @@ body.opl-editing [data-opl-e] {
 }
 
 body.opl-editing [data-opl-e="text"] {
-  outline: 1px dashed rgba(184, 111, 82, 0.55);
+  outline: 1px dashed color-mix(in srgb, var(--opl-accent) 55%, transparent);
   outline-offset: 2px;
 }
 
@@ -57,13 +62,13 @@ body.opl-editing [data-opl-e="block"] {
 
 body.opl-editing [data-opl-e]:hover {
   outline-color: var(--opl-accent);
-  background-color: rgba(184, 111, 82, 0.06);
+  background-color: color-mix(in srgb, var(--opl-accent) 6%, transparent);
 }
 
 body.opl-editing [data-opl-sel] {
   outline: 2px solid var(--opl-accent) !important;
   outline-offset: 3px !important;
-  background-color: rgba(184, 111, 82, 0.08);
+  background-color: color-mix(in srgb, var(--opl-accent) 8%, transparent);
 }
 
 /* Something she removed. It stays on the page while she is editing, faint
@@ -145,8 +150,11 @@ body.opl-editing [contenteditable="true"] {
 }
 .opl-btn:hover:not(:disabled) { background: rgba(255, 255, 255, .12); border-color: rgba(255, 255, 255, .3); }
 .opl-btn:disabled { opacity: .35; cursor: not-allowed; }
-.opl-btn.primary { background: var(--opl-accent); border-color: var(--opl-accent); color: #fff; }
-.opl-btn.primary:hover:not(:disabled) { background: #C87E5F; border-color: #C87E5F; }
+.opl-btn.primary { background: var(--opl-accent); border-color: var(--opl-accent); color: var(--opl-accent-ink); }
+.opl-btn.primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--opl-accent) 84%, white);
+  border-color: color-mix(in srgb, var(--opl-accent) 84%, white);
+}
 .opl-btn.danger { border-color: rgba(190, 80, 80, .5); color: #ffb4b4; }
 .opl-btn.danger:hover:not(:disabled) { background: rgba(190, 80, 80, .2); }
 .opl-btn.icon { padding: 9px; min-width: 34px; justify-content: center; }
@@ -308,7 +316,7 @@ body.opl-panel-open { padding-right: 336px; }
   cursor: pointer;
   transition: border-color .13s ease, background .13s ease;
 }
-.opl-drop:hover, .opl-drop.over { border-color: var(--opl-accent); background: rgba(184, 111, 82, .1); color: var(--opl-text); }
+.opl-drop:hover, .opl-drop.over { border-color: var(--opl-accent); background: color-mix(in srgb, var(--opl-accent) 10%, transparent); color: var(--opl-text); }
 .opl-thumb {
   width: 100%;
   max-height: 130px;
@@ -530,7 +538,7 @@ body.opl-panel-open { padding-right: 336px; }
   transition: background .13s ease, color .13s ease, border-color .13s ease;
 }
 .opl-chip:hover { background: rgba(255, 255, 255, .1); color: var(--opl-text); }
-.opl-chip.on { background: var(--opl-accent); border-color: var(--opl-accent); color: #fff; }
+.opl-chip.on { background: var(--opl-accent); border-color: var(--opl-accent); color: var(--opl-accent-ink); }
 /* A quiet dot on a screen that already carries a value of its own. */
 .opl-chip.set::after {
   content: "";
@@ -561,7 +569,7 @@ body.opl-panel-open { padding-right: 336px; }
   transition: background .13s ease, border-color .13s ease, transform .13s ease;
 }
 .opl-block:hover {
-  background: rgba(184, 111, 82, .15);
+  background: color-mix(in srgb, var(--opl-accent) 15%, transparent);
   border-color: var(--opl-accent);
   transform: translateY(-1px);
 }
@@ -734,7 +742,7 @@ body.opl-panel-open { padding-right: 336px; }
   align-items: center;
   padding: 26px 10px 26px 26px;
   background:
-    radial-gradient(120% 100% at 20% 0%, rgba(184, 111, 82, .16), transparent 60%),
+    radial-gradient(120% 100% at 20% 0%, color-mix(in srgb, var(--opl-accent) 16%, transparent), transparent 60%),
     radial-gradient(100% 90% at 100% 100%, rgba(110, 143, 123, .16), transparent 60%);
   border-right: 1px solid var(--opl-line);
 }
@@ -775,13 +783,13 @@ body.opl-panel-open { padding-right: 336px; }
 .op-reel .op-ink { fill: #8f8a80; }
 .op-reel .op-dim { fill: #6d685f; }
 .op-reel .op-faint { fill: #4a463f; }
-.op-reel .op-logo { fill: #B86F52; }
+.op-reel .op-logo { fill: var(--opl-accent); }
 .op-reel .op-card rect { fill: rgba(255, 255, 255, .045); stroke: rgba(255, 255, 255, .08); }
 .op-reel .op-panel rect { fill: #1b1e23; stroke: rgba(255, 255, 255, .13); }
 .op-reel .op-bar rect { fill: #1b1e23; stroke: rgba(255, 255, 255, .13); }
 .op-reel .op-bar-item { fill: #55504a; }
-.op-reel .op-bar-dot { fill: #B86F52; }
-.op-reel .op-publish { fill: #B86F52; stroke: none; }
+.op-reel .op-bar-dot { fill: var(--opl-accent); }
+.op-reel .op-publish { fill: var(--opl-accent); stroke: none; }
 .op-reel .op-publish-word {
   fill: #fff; font: 600 7px ui-sans-serif, system-ui, sans-serif;
   letter-spacing: .1em; text-anchor: middle;
@@ -794,8 +802,8 @@ body.opl-panel-open { padding-right: 336px; }
 }
 .op-reel .op-box { fill: none; stroke-width: 1.4; stroke-dasharray: 5 4; opacity: 0; }
 
-.op-reel .op-box-text, .op-reel .op-chip-text { stroke: #B86F52; fill: none; }
-.op-reel .op-chip-text { fill: #B86F52; }
+.op-reel .op-box-text, .op-reel .op-chip-text { stroke: var(--opl-accent); fill: none; }
+.op-reel .op-chip-text { fill: var(--opl-accent); }
 .op-reel .op-box-img, .op-reel .op-chip-img { stroke: #6E8F7B; }
 .op-reel .op-chip-img { fill: #6E8F7B; }
 .op-reel .op-box-card, .op-reel .op-chip-card { stroke: #B9905C; }
@@ -803,13 +811,13 @@ body.opl-panel-open { padding-right: 336px; }
 
 .op-reel .op-shot-old { fill: url(#op-sky); }
 .op-reel .op-shot-new { fill: url(#op-warm); }
-.op-reel .op-sw-1 { fill: #B86F52; }
+.op-reel .op-sw-1 { fill: var(--opl-accent); }
 .op-reel .op-sw-2 { fill: #395144; }
 .op-reel .op-sw-3 { fill: #B9905C; }
 .op-reel .op-sw-4 { fill: #EDE7DC; }
 .op-reel .op-sw-ring { fill: none; stroke: #fff; stroke-width: 1.6; opacity: 0; }
 .op-reel .op-click { fill: none; stroke: #fff; stroke-width: 1.6; opacity: 0; }
-.op-reel .op-ping { fill: none; stroke: #B86F52; stroke-width: 2; opacity: 0; }
+.op-reel .op-ping { fill: none; stroke: var(--opl-accent); stroke-width: 2; opacity: 0; }
 
 /* One duration, one start, for every moving part. */
 .op-reel .op-cursor,
@@ -906,9 +914,9 @@ body.opl-panel-open { padding-right: 336px; }
 @keyframes op-retype {
   0%, 20%        { transform: scaleX(1); fill: #8f8a80; }
   23%            { transform: scaleX(.12); fill: #8f8a80; }
-  24%            { transform: scaleX(.12); fill: #B86F52; }
-  30%            { transform: scaleX(1.16); fill: #B86F52; }
-  100%           { transform: scaleX(1.16); fill: #B86F52; }
+  24%            { transform: scaleX(.12); fill: var(--opl-accent); }
+  30%            { transform: scaleX(1.16); fill: var(--opl-accent); }
+  100%           { transform: scaleX(1.16); fill: var(--opl-accent); }
 }
 
 /* ---- the picture, replaced ---- */
@@ -960,7 +968,7 @@ body.opl-panel-open { padding-right: 336px; }
 /* ---- published ---- */
 .op-reel .op-publish { animation-name: op-publish; }
 @keyframes op-publish {
-  0%, 78%        { fill: #B86F52; }
+  0%, 78%        { fill: var(--opl-accent); }
   79%            { fill: #6E8F7B; }
   100%           { fill: #6E8F7B; }
 }
@@ -977,7 +985,7 @@ body.opl-panel-open { padding-right: 336px; }
 @media (prefers-reduced-motion: reduce) {
   .op-reel * { animation: none !important; }
   .op-reel .op-cursor { transform: translate(357px, 338px); }
-  .op-reel .op-headline { transform: scaleX(1.16); fill: #B86F52; }
+  .op-reel .op-headline { transform: scaleX(1.16); fill: var(--opl-accent); }
   .op-reel .op-shot-new { transform: translateY(0); }
   .op-reel .op-card-copy { opacity: 1; transform: translate(110px, 0); }
   .op-reel .op-card-2 rect:first-child { fill: rgba(185, 144, 92, .3); stroke: #B9905C; }
@@ -1234,26 +1242,14 @@ body.opl-editing [data-opl-e="video"] {
   outline-offset: 3px;
 }
 
-/* The Opaline door reads "Edit with [mark] Opaline": the mark stands where
-   the word Wopara used to. Sized to the text rather than to the box, and
-   nudged off the baseline so the line stays true. Same file, same wide
-   transparent margin as the credit mark beside it, so it is scaled inside
-   its own footprint rather than given a bigger one. */
-.opaline-mark {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  display: inline-block;
-  vertical-align: -0.28em;
-  transform: scale(1.55);
-  margin: 0 0.34em 0 0.12em;
-  filter: brightness(0);
-  opacity: 0.55;
-  transition: opacity 0.25s var(--ease), filter 0.25s var(--ease);
-}
+/* The door — "Edit with [mark] Opaline" — is NOT styled here.
 
-[data-theme="dark"] .opaline-mark { filter: none; opacity: 0.7; }
-.opaline-door:hover .opaline-mark { opacity: 1; }
+   A visitor sees it and a visitor never downloads this file, so styling it
+   here would mean the one piece of Opaline everybody sees is the one piece
+   nobody gets the CSS for: a full-size black logo jammed against whatever
+   it was put next to. Its rules are injected by opaline-overlay.js
+   instead, which runs for everyone, and which is also the only thing that
+   can see what colour the footer it landed in happens to be. */
 
 /* The way to get one of your own. Quiet, under the button, because
    somebody at this box is trying to sign in — not to buy. */
@@ -1272,5 +1268,5 @@ body.opl-editing [data-opl-e="video"] {
   transition: color .18s ease;
 }
 .op-get span { transition: transform .22s cubic-bezier(.22, 1, .36, 1); }
-.op-get:hover { color: var(--opl-accent, #B86F52); }
+.op-get:hover { color: var(--opl-accent); }
 .op-get:hover span { transform: translateX(4px); }

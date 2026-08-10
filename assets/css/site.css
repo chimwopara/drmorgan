@@ -66,6 +66,13 @@
   --accent-str:  var(--clay-deep);
   --accent-2:    var(--blue);
 
+  /* What the Opaline editor's chrome borrows, so the panel he edits in reads
+     as this site rather than as the tool. --blue rather than --accent because
+     the accent here is a near-black graphite, which is not an accent at all
+     once it is a button on a dark panel. Fixed rather than var(--blue): the
+     editor keeps its own dark chrome whichever way the site is themed. */
+  --opl-site-accent: #2F5A8C;
+
   --fg: var(--graphite);
   --fg-dim: var(--graphite-2);
   --hairline: rgba(27, 37, 48, 0.15);
