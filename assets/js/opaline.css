@@ -491,20 +491,47 @@ body.opl-panel-open { padding-right: 336px; }
 
 /* On a phone the inspector takes the lower half rather than a side rail,
    and the page keeps its full width behind it. */
+/* The phone.
+
+   The inspector takes the bottom of the screen, so the bar goes to the
+   top — and that is exactly where sites put a fixed header. On both of
+   Wopara's own sites that header carries the burger, which on a phone is
+   the only way to reach the menu whose wording she may want to change, so
+   the bar was sitting on top of the one control she cannot do without.
+
+   --opl-top-clear is measured at run time from whatever is actually
+   fixed at the top of THIS page, rather than guessed at, because no two
+   sites put their header at the same height. Zero when nothing is.
+
+   dvh, with vh behind it: on a phone vh is the tall viewport, the one
+   with the address bar hidden, so a sheet sized in vh is cut off by the
+   address bar until you scroll. Safe-area insets keep the bar out from
+   under a notch and the sheet's last row above the home indicator. */
 @media (max-width: 720px) {
   #opl-panel {
     top: auto;
     bottom: 0;
     width: 100%;
     height: 62vh;
+    height: 62dvh;
     border-left: 0;
     border-top: 1px solid var(--opl-line);
     border-radius: 15px 15px 0 0;
     transform: translateY(100%);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   body.opl-panel-open { padding-right: 0; }
-  #opl-bar { bottom: auto; top: 10px; }
-  #opl-toast { bottom: auto; top: 74px; }
+  #opl-bar {
+    bottom: auto;
+    top: calc(10px + var(--opl-top-clear, 0px) + env(safe-area-inset-top, 0px));
+  }
+  #opl-toast {
+    bottom: auto;
+    top: calc(74px + var(--opl-top-clear, 0px) + env(safe-area-inset-top, 0px));
+  }
+  /* A sheet is a full-screen dialog on a phone; its own scroller must clear
+     the home indicator or the last button is unreachable. */
+  #opl-sheet { padding: 16px 12px calc(16px + env(safe-area-inset-bottom, 0px)); }
 }
 
 @media print { #opl-bar, #opl-panel, #opl-sheet, #opl-gate, #opl-toast, #opl-tag { display: none !important; } }

@@ -418,6 +418,51 @@
   var CONTROLS = "[data-theme-toggle], [data-ask], [data-opaline], #chat-launcher, .menu-btn, .menu-scrim, .skip-link" +
     (CONFIG.controls ? ", " + CONFIG.controls : "");
 
+  /* On a phone the inspector is a sheet across the bottom of the screen.
+     Anything selected in the lower half is behind it the moment it opens —
+     she taps a paragraph and it disappears under the panel that exists to
+     change it. Lifted into the strip that is still showing. Only ever
+     upward, and only when it is actually hidden, so a tap near the top of
+     the screen does not make the page jump for no reason. */
+  function keepInView(node) {
+    var visible = window.innerHeight * 0.38;      // what the sheet leaves
+    var box = node.getBoundingClientRect();
+    if (box.top >= 64 && box.bottom <= visible) return;
+    var to = window.scrollY + box.top - Math.max(72, visible * 0.3);
+    window.scrollTo({ top: Math.max(0, to), behavior: "smooth" });
+  }
+
+  /* How far down the bar has to start on a phone.
+
+     The bar sits at the top there, because the inspector has the bottom —
+     and that is exactly where a site puts its fixed header. On both of
+     Wopara's own sites that header carries the burger, which on a phone is
+     the only way into the menu whose wording she may want to change, so the
+     bar was covering the one control she cannot do without.
+
+     Measured, not guessed: whatever is actually fixed or sticky across the
+     top of THIS page decides it, because no two sites put their header at
+     the same height. Nothing fixed up there means nothing to clear. */
+  function clearFixedChrome() {
+    var root = document.documentElement;
+    if (window.innerWidth > 720) { root.style.removeProperty("--opl-top-clear"); return; }
+
+    var lowest = 0;
+    var all = document.body.getElementsByTagName("*");
+    for (var i = 0; i < all.length && i < 400; i++) {
+      var node = all[i];
+      if (isChrome(node)) continue;
+      var cs = getComputedStyle(node);
+      if (cs.position !== "fixed" && cs.position !== "sticky") continue;
+      var box = node.getBoundingClientRect();
+      /* Across the top and wide enough to be chrome. A fixed button in a
+         corner is not a header and must not push the bar down the screen. */
+      if (box.height === 0 || box.top > 90 || box.width < window.innerWidth * 0.5) continue;
+      if (box.bottom > lowest) lowest = box.bottom;
+    }
+    root.style.setProperty("--opl-top-clear", Math.round(Math.max(0, lowest)) + "px");
+  }
+
   function isChrome(node) {
     var n = node;
     var guard = 0;
@@ -532,6 +577,7 @@
       var panel = document.getElementById("opl-panel");
       panel.classList.add("open");
       if (window.innerWidth > 720) document.body.classList.add("opl-panel-open");
+      else keepInView(node);
     }
   }
 
@@ -2264,7 +2310,10 @@
     };
     window.addEventListener("resize", function () {
       if (more.classList.contains("open")) placeMore();
+      clearFixedChrome();
     });
+    window.addEventListener("orientationchange", clearFixedChrome);
+    clearFixedChrome();
     document.addEventListener("click", function () { more.classList.remove("open"); });
 
     var panel = el("div");

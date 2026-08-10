@@ -46,7 +46,7 @@
      front of a static site does not usually cache, so a new version
      actually arrives. The constant below is only the fallback for a page
      whose tag carries no version at all. */
-  var VERSION = (/[?&]v=([^&]+)/.exec(MY_SRC) || [])[1] || "2026-08-10b";
+  var VERSION = (/[?&]v=([^&]+)/.exec(MY_SRC) || [])[1] || "2026-08-10c";
 
   /* Everything the host site can decide. A missing config is a valid
      config: every field below falls back to something that works. */
