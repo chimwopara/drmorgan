@@ -534,6 +534,32 @@ body.opl-panel-open { padding-right: 336px; }
   #opl-sheet { padding: 16px 12px calc(16px + env(safe-area-inset-bottom, 0px)); }
 }
 
+/* Room to scroll past the end.
+
+   The bar is fixed across the bottom of the window, so the last thing on
+   the page is behind it — which on every site Wopara builds is the footer,
+   and the footer is full of things she has every reason to change: the
+   credit line, the social icons, the small print, and every link in it.
+   She could see them and not reach them.
+
+   So while she is editing, a strip is added at the end of the page,
+   exactly as tall as the bar plus the gap it floats in, taking the colour
+   of whatever it continues — so a dark footer simply looks a little taller
+   rather than ending in a band of the wrong colour.
+
+   An element rather than body::after, because a site may well be using
+   that already: drmorgan.ai paints its grain over the whole page with it,
+   and a rule of ours would have won and taken the grain away for exactly
+   as long as she was editing.
+
+   Only where the bar is at the bottom. On a phone it is at the top and the
+   footer was never covered. */
+#opl-tail { display: none; }
+
+@media (min-width: 721px) {
+  body.opl-editing #opl-tail { display: block; }
+}
+
 @media print { #opl-bar, #opl-panel, #opl-sheet, #opl-gate, #opl-toast, #opl-tag { display: none !important; } }
 
 /* ==========================================================================

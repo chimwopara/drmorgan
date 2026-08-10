@@ -432,6 +432,42 @@
     window.scrollTo({ top: Math.max(0, to), behavior: "smooth" });
   }
 
+  /* How much room the end of the page needs so the bar is not standing on
+     it, and what colour that room should be.
+
+     Measured from the bar itself rather than written down, because it is
+     one row on a laptop and two on a narrow window, and a number typed
+     here would be wrong on one of them. */
+  function fitTail() {
+    var bar = document.getElementById("opl-bar");
+    if (!bar) return;
+
+    var tail = document.getElementById("opl-tail");
+    if (!tail) {
+      tail = el("div");
+      tail.id = "opl-tail";
+      tail.setAttribute("aria-hidden", "true");
+      document.body.appendChild(tail);
+    }
+    tail.style.height = (bar.offsetHeight + 34) + "px";
+
+    /* The strip continues whatever the page ends in — nearly always the
+       footer — so it reads as part of it. Walked backwards past anything
+       see-through, or a transparent last element would hand back nothing
+       and leave a band of the body's own colour under a dark footer. */
+    var kids = document.body.children;
+    for (var i = kids.length - 1; i >= 0; i--) {
+      var node = kids[i];
+      if (isChrome(node)) continue;
+      var bg = getComputedStyle(node).backgroundColor;
+      if (bg && bg !== "transparent" && !/rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\s*\)/.test(bg)) {
+        tail.style.background = bg;
+        return;
+      }
+    }
+    tail.style.background = "transparent";
+  }
+
   /* How far down the bar has to start on a phone.
 
      The bar sits at the top there, because the inspector has the bottom —
@@ -2311,9 +2347,11 @@
     window.addEventListener("resize", function () {
       if (more.classList.contains("open")) placeMore();
       clearFixedChrome();
+      fitTail();
     });
-    window.addEventListener("orientationchange", clearFixedChrome);
+    window.addEventListener("orientationchange", function () { clearFixedChrome(); fitTail(); });
     clearFixedChrome();
+    fitTail();
     document.addEventListener("click", function () { more.classList.remove("open"); });
 
     var panel = el("div");
