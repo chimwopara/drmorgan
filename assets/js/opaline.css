@@ -40,22 +40,23 @@
    gold and set further out for the blocks that hold them.
    ========================================================================== */
 
-/* The wash that marks what is under the pointer is an INSET SHADOW, not a
-   background.
+/* NOTHING FILLS. The outline is the whole affordance.
 
-   A background-color here does not tint the element, it REPLACES the one
-   the site gave it — and this selector outranks almost anything a site
-   writes, so it wins. On a footer with `background: var(--ink-1)` and pale
-   text on top, a 6%-opaque wash meant the dark plate vanished, the light
-   page showed through, and pale text sat on near-white: the footer became
-   unreadable the moment the pointer crossed it.
+   There was a wash over whatever the pointer was on. It went through two
+   wrong answers before the right one. As a background-color it did not
+   tint an element, it REPLACED the background the site gave it — this
+   selector outranks almost anything a site writes — so a dark footer with
+   pale text on it turned near-white and became unreadable. As an inset
+   shadow it stopped doing that, but it was still a panel changing colour
+   under the pointer, on a site whose own sections change colour to mean
+   something.
 
-   An inset shadow paints over whatever background is already there and
-   leaves it be. The cost is that an element's own box-shadow is hidden
-   while the pointer is on it, which lasts as long as the pointer does. */
+   The outline already says which element this is, and what kind: dashed
+   for what can be edited, solid and heavier for what is selected. A fill
+   adds nothing to that and costs the page its own colours. */
 body.opl-editing [data-opl-e] {
   cursor: pointer;
-  transition: outline-color .12s linear, box-shadow .12s linear;
+  transition: outline-color .12s linear;
 }
 
 body.opl-editing [data-opl-e="text"] {
@@ -75,13 +76,11 @@ body.opl-editing [data-opl-e="block"] {
 
 body.opl-editing [data-opl-e]:hover {
   outline-color: var(--opl-accent);
-  box-shadow: inset 0 0 0 9999px color-mix(in srgb, var(--opl-accent) 6%, transparent);
 }
 
 body.opl-editing [data-opl-sel] {
   outline: 2px solid var(--opl-accent) !important;
   outline-offset: 3px !important;
-  box-shadow: inset 0 0 0 9999px color-mix(in srgb, var(--opl-accent) 8%, transparent);
 }
 
 /* Something she removed. It stays on the page while she is editing, faint
@@ -111,8 +110,6 @@ body.opl-editing [data-opl-hidden]::after {
 
 body.opl-editing [contenteditable="true"] {
   outline: 2px solid var(--opl-accent-2) !important;
-  outline-offset: 3px !important;
-  box-shadow: inset 0 0 0 9999px rgba(110, 143, 123, .1);
   cursor: text;
 }
 

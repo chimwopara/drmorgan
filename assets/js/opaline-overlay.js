@@ -31,6 +31,17 @@
      still points at it — by the time the editor is asked for, it does not. */
   var MY_SRC = (document.currentScript && document.currentScript.src) || "";
 
+  /* BUMP THIS WHENEVER opaline.css OR opaline-editor.js CHANGES.
+
+     Both are fetched by URL when the editor opens, and a browser that has
+     seen them before will happily use the copy it already has — for days.
+     That is right for a file that never changes and wrong for these two:
+     a fix to the stylesheet reached nobody who had already opened the
+     editor once, and the bug it fixed went on being reported after it had
+     been fixed. The version rides along as a query so a new one is a new
+     URL, and an unchanged one is still served from cache. */
+  var VERSION = "2026-08-10";
+
   /* Everything the host site can decide. A missing config is a valid
      config: every field below falls back to something that works. */
   var CONFIG = window.OpalineConfig || {};
@@ -1302,11 +1313,11 @@
 
       var css = document.createElement("link");
       css.rel = "stylesheet";
-      css.href = base + "opaline.css";
+      css.href = base + "opaline.css?v=" + VERSION;
       document.head.appendChild(css);
 
       var script = document.createElement("script");
-      script.src = base + "opaline-editor.js";
+      script.src = base + "opaline-editor.js?v=" + VERSION;
       script.onload = function () { done(window.OpalineEditor); };
       script.onerror = function () { loading = null; fail(new Error("The editor could not be loaded.")); };
       document.body.appendChild(script);
