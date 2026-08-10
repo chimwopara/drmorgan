@@ -40,9 +40,22 @@
    gold and set further out for the blocks that hold them.
    ========================================================================== */
 
+/* The wash that marks what is under the pointer is an INSET SHADOW, not a
+   background.
+
+   A background-color here does not tint the element, it REPLACES the one
+   the site gave it — and this selector outranks almost anything a site
+   writes, so it wins. On a footer with `background: var(--ink-1)` and pale
+   text on top, a 6%-opaque wash meant the dark plate vanished, the light
+   page showed through, and pale text sat on near-white: the footer became
+   unreadable the moment the pointer crossed it.
+
+   An inset shadow paints over whatever background is already there and
+   leaves it be. The cost is that an element's own box-shadow is hidden
+   while the pointer is on it, which lasts as long as the pointer does. */
 body.opl-editing [data-opl-e] {
   cursor: pointer;
-  transition: outline-color .12s linear, background-color .12s linear;
+  transition: outline-color .12s linear, box-shadow .12s linear;
 }
 
 body.opl-editing [data-opl-e="text"] {
@@ -62,13 +75,13 @@ body.opl-editing [data-opl-e="block"] {
 
 body.opl-editing [data-opl-e]:hover {
   outline-color: var(--opl-accent);
-  background-color: color-mix(in srgb, var(--opl-accent) 6%, transparent);
+  box-shadow: inset 0 0 0 9999px color-mix(in srgb, var(--opl-accent) 6%, transparent);
 }
 
 body.opl-editing [data-opl-sel] {
   outline: 2px solid var(--opl-accent) !important;
   outline-offset: 3px !important;
-  background-color: color-mix(in srgb, var(--opl-accent) 8%, transparent);
+  box-shadow: inset 0 0 0 9999px color-mix(in srgb, var(--opl-accent) 8%, transparent);
 }
 
 /* Something she removed. It stays on the page while she is editing, faint
@@ -99,7 +112,7 @@ body.opl-editing [data-opl-hidden]::after {
 body.opl-editing [contenteditable="true"] {
   outline: 2px solid var(--opl-accent-2) !important;
   outline-offset: 3px !important;
-  background-color: rgba(110, 143, 123, .1);
+  box-shadow: inset 0 0 0 9999px rgba(110, 143, 123, .1);
   cursor: text;
 }
 
