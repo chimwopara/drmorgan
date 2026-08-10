@@ -1,0 +1,21 @@
+{
+  "_comment": [
+    "Functions and Firestore only. The site itself is served from GitHub Pages",
+    "at drmorgan.ai and is not deployed from here, so there is no hosting block:",
+    "adding one would let a stray `firebase deploy` publish a second copy of the",
+    "site at a Firebase address and split the canonical URL in two."
+  ],
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs20",
+    "ignore": [
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firebase-debug.*.log"
+    ]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}

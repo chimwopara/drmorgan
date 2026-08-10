@@ -1,0 +1,44 @@
+{
+  "_readme": [
+    "Recent posts, so the assistant can answer 'what has he been saying lately'.",
+    "",
+    "WHY THIS FILE IS HAND-KEPT, NOT FETCHED:",
+    "LinkedIn serves no public RSS and has no read API for a personal profile's",
+    "posts. The logged-out page truncates every post body at roughly 150",
+    "characters, and the browser cannot fetch linkedin.com from drmorgan.ai",
+    "anyway (CORS). So the text lives here.",
+    "",
+    "TO UPDATE: open the post on LinkedIn, copy the whole body, paste it as",
+    "'text', set 'truncated' to false, and set 'date' to the posting date.",
+    "Anything with truncated:true is an excerpt the assistant is told never to",
+    "finish for itself. Keep the newest first; twelve are sent to the model.",
+    "",
+    "Delete this file and the assistant carries on exactly as before."
+  ],
+
+  "source": "https://www.linkedin.com/in/eberemorgan",
+  "checked": "2026-08-09",
+
+  "posts": [
+    {
+      "date": "",
+      "truncated": true,
+      "text": "Strong institutions do not exclusively depend on exceptional individuals. They are built on clarity, continuity, and governance intelligence."
+    },
+    {
+      "date": "",
+      "truncated": true,
+      "text": "Foresight without strategy is speculation. Strategy without structure is fragile. Sustainable leadership requires all three: Foresight to see"
+    },
+    {
+      "date": "",
+      "truncated": true,
+      "text": "Transformation changes outcomes. Institutions determine what endures. At a certain level of leadership maturity, the work shifts: From"
+    },
+    {
+      "date": "",
+      "truncated": true,
+      "text": "Most leadership failure is not a people problem. It is a design problem. We often try to correct behavior without correcting the systems that shape"
+    }
+  ]
+}

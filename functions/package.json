@@ -1,0 +1,13 @@
+{
+  "name": "drmorgan-functions",
+  "description": "Cloud Functions for drmorgan.ai (the site editor and the store)",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": "20"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.0.1"
+  }
+}

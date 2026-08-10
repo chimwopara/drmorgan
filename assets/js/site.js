@@ -999,7 +999,7 @@
         closeBtn = $("[data-ask-close]", root),
         scrim = $("[data-ask-scrim]", root);
 
-    var docs = null, idf = null, facts = null, loading = false;
+    var docs = null, idf = null, facts = null, updates = null, loading = false;
     var STOP = ("a an and are as at be but by for from has have he her his i in into is it its of on or that the " +
       "their them there to was were what when where which who why will with this these those you your we our us " +
       "not no do does did can could would should about me my more most such").split(" ");
@@ -1044,9 +1044,17 @@
     function load() {
       if (docs || loading) return Promise.resolve();
       loading = true;
-      return fetch("assets/data/search.json")
-        .then(function (r) { return r.json(); })
-        .then(function (d) {
+      return Promise.all([
+        fetch("assets/data/search.json").then(function (r) { return r.json(); }),
+        // Posts kept by hand in updates.json. Optional: a missing or broken
+        // file leaves the assistant exactly as it was.
+        fetch("assets/data/updates.json")
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .catch(function () { return null; })
+      ])
+        .then(function (loaded) {
+          var d = loaded[0], u = loaded[1];
+          updates = u && Array.isArray(u.posts) && u.posts.length ? u : null;
           facts = d.facts || null;
           docs = d.docs.map(function (doc) {
             var tf = {};
@@ -1167,6 +1175,167 @@
       body.scrollTop = body.scrollHeight;
     }
 
+    /* ---- handing off to a person -----------------------------------------
+       Two ways a conversation earns the offer: the reader asks for a human,
+       or the assistant keeps coming up short. The card is appended to the
+       transcript rather than replacing it, and it carries the question over
+       so nobody is made to type it twice.
+       -------------------------------------------------------------------- */
+    var WANTS_HUMAN = new RegExp(
+      "(speak|talk|chat|connect|put me)\\s+(to|with|through(\\s+to)?)\\s+(a\\s+|an\\s+)?" +
+        "(human|person|someone|somebody|him|dr\\.?\\s?morgan|ebere)" +
+      "|human\\s+(agent|help|being|support)" +
+      "|real\\s+(person|human)" +
+      "|(contact|email|e-mail|reach|message|write\\s+to|get\\s+hold\\s+of)\\s+" +
+        "(him|dr\\.?\\s?morgan|ebere|you\\s+directly)" +
+      "|get\\s+in\\s+touch|hand\\s?off|escalate", "i");
+
+    // The shapes an answer takes when the site simply does not cover it.
+    var CAME_UP_SHORT = new RegExp(
+      "(do not|don't|does not|doesn't)\\s+(have|cover|say|include)" +
+      "|not\\s+(published|covered|on the site|something)" +
+      "|deliberately not|cannot say|can't say|no information", "i");
+
+    var misses = 0, offering = false, declined = false;
+
+    function maybeOffer(q, answer, hits) {
+      if (offering) return;
+      var asked = WANTS_HUMAN.test(q);
+      if (!asked) {
+        if (!hits.length || CAME_UP_SHORT.test(answer || "")) misses++;
+        else misses = 0;
+      }
+      // Asking outright always works. Drifting into it only offers once,
+      // and never again after the reader has waved it away.
+      if (asked || (misses >= 2 && !declined)) escalate(q);
+    }
+
+    function escField(form, type, name, label, value) {
+      var id = "ask-esc-" + name.toLowerCase();
+      var wrap = el("div", "ask__esc-field");
+      var lab = el("label", null, label);
+      lab.setAttribute("for", id);
+
+      var node = el(type === "textarea" ? "textarea" : "input");
+      if (type !== "textarea") node.type = type;
+      else node.rows = 3;
+      node.id = id;
+      node.name = name;
+      node.required = true;
+      node.autocomplete = name === "NAME" ? "name" : name === "EMAIL" ? "email" : "off";
+      if (value) node.value = value;
+
+      wrap.appendChild(lab);
+      wrap.appendChild(node);
+      form.appendChild(wrap);
+      return node;
+    }
+
+    function escalate(lastQ) {
+      offering = true;
+
+      var card = el("div", "ask__esc");
+      card.appendChild(el("p", "ask__label", "Ask him directly"));
+      card.appendChild(el("p", "ask__esc-note",
+        "Leave it here and it reaches Dr. Morgan's inbox. He answers personally."));
+
+      var f = el("form", "ask__esc-form");
+      var nameF = escField(f, "text", "NAME", "Name");
+      var mailF = escField(f, "email", "EMAIL", "Email");
+      var msgF = escField(f, "textarea", "MESSAGE", "Question", lastQ || "");
+
+      // Same honeypot the engagement form uses: bots fill it, people cannot see it.
+      var trap = el("input");
+      trap.type = "text";
+      trap.name = "email_address_check";
+      trap.tabIndex = -1;
+      trap.autocomplete = "off";
+      trap.setAttribute("aria-hidden", "true");
+      trap.style.cssText = "position:absolute;left:-9999px;width:1px;height:1px;opacity:0";
+      f.appendChild(trap);
+
+      var row = el("div", "ask__esc-row");
+      var go = el("button", "ask__esc-send", "Send to Dr. Morgan");
+      go.type = "submit";
+      var no = el("button", "ask__esc-skip", "Not now");
+      no.type = "button";
+      row.appendChild(go);
+      row.appendChild(no);
+      f.appendChild(row);
+
+      var status = el("p", "ask__esc-status");
+      status.setAttribute("role", "status");
+      status.setAttribute("aria-live", "polite");
+      f.appendChild(status);
+
+      no.addEventListener("click", function () {
+        card.remove();
+        offering = false;
+        declined = true;      // only an outright request brings it back
+        misses = 0;
+      });
+
+      f.addEventListener("submit", function (e) {
+        e.preventDefault();
+        if (trap.value) return;                                   // bot
+        if (!f.checkValidity()) { if (f.reportValidity) f.reportValidity(); return; }
+
+        var payload = {
+          NAME: nameF.value.trim(),
+          EMAIL: mailF.value.trim(),
+          MESSAGE: msgF.value.trim(),
+          SOURCE: "Site assistant",
+          // What was already discussed, so the reply can pick up where the
+          // assistant left off instead of starting the question again.
+          TRANSCRIPT: history.slice(-8).map(function (m) {
+            return (m.role === "user" ? "Visitor: " : "Assistant: ") + m.content;
+          }).join("\n\n")
+        };
+
+        go.disabled = true;
+        status.textContent = "Sending...";
+
+        if (!API_BASE) { escMailto(payload, status); go.disabled = false; return; }
+
+        fetch(API_BASE + "/inquiry", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        })
+          .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+          .then(function () {
+            f.remove();
+            card.appendChild(el("p", "ask__esc-done",
+              "Sent. He will come back to you at " + payload.EMAIL + "."));
+            body.scrollTop = body.scrollHeight;
+            // A sent question does not end the conversation. Stand the offer
+            // down so it cannot nag, but let a second outright request reopen
+            // it rather than meeting that request with silence.
+            offering = false;
+            declined = true;
+            misses = 0;
+          })
+          .catch(function () { escMailto(payload, status); })     // never lose it
+          .then(function () { go.disabled = false; });
+      });
+
+      card.appendChild(f);
+      body.appendChild(card);
+      body.scrollTop = body.scrollHeight;
+      if (!coarse) setTimeout(function () { nameF.focus(); }, 80);
+    }
+
+    // The safety net the engagement form already relies on: if the proxy is
+    // unreachable the enquiry becomes a pre-filled email rather than nothing.
+    function escMailto(p, status) {
+      var to = (facts && facts.email) || "drmorgan@drmorgan.ai";
+      location.href = "mailto:" + to +
+        "?subject=" + encodeURIComponent("Question from drmorgan.ai") +
+        "&body=" + encodeURIComponent(
+          "Name: " + p.NAME + "\nEmail: " + p.EMAIL + "\n\n" + p.MESSAGE + "\n\nSent from the site assistant");
+      status.textContent = "Opening your mail client. If nothing happens, write to " + to + ".";
+    }
+
     var GREET = /^\s*(hi|hey|hello|howdy|yo|sup|hiya|good\s*(morning|afternoon|evening)|greetings|what'?s up)\b[\s!.?]*$/i;
     var THANKS = /^\s*(thanks|thank you|cheers|ta|appreciate it)\b[\s!.?]*$/i;
 
@@ -1183,6 +1352,7 @@
       node.textContent = text;
       history.push({ role: "assistant", content: text });
       sources(hits);
+      maybeOffer(q, text, hits);
     }
 
     function send(q) {
@@ -1217,6 +1387,7 @@
             q: q,
             facts: facts,
             context: everything(hits),
+            updates: updates ? updates.posts.slice(0, 12) : null,
             history: history.slice(0, -1)
           })
         }).then(function (r) {
@@ -1232,6 +1403,7 @@
                 node.textContent = out;
                 history.push({ role: "assistant", content: out });
                 sources(hits);
+                maybeOffer(q, out, hits);
                 return;
               }
               buf += dec.decode(res.value, { stream: true });

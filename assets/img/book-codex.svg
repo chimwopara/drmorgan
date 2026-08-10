@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1200" width="800" height="1200" role="img" aria-label="Book cover: The LeadershipCodex">
+  <!--
+    A placeholder cover, in the site's own light-theme colours. It is an
+    <img>, not drawn markup, so it can be replaced from inside the editor
+    like any other picture on the site — which is the point: this stands in
+    until the real jacket exists.
+
+    Colours are literal rather than custom properties: an SVG loaded through
+    <img> is its own document and cannot see the page's :root. A cover is an
+    object anyway, and an object does not change colour when the room does.
+  -->
+  <defs>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1E2D42"/>
+      <stop offset="1" stop-color="#16212F"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="1200" fill="url(#ground)"/>
+
+  <!-- the spine's shadow, so it reads as a book rather than a poster -->
+  <rect x="0" y="0" width="26" height="1200" fill="#0C1421" opacity=".55"/>
+  <rect x="26" y="0" width="3" height="1200" fill="#EDF2F9" opacity=".08"/>
+
+  <!-- a hairline frame, at the same inset the site uses on its plates -->
+  <rect x="86" y="80" width="640" height="1040" fill="none" stroke="#9FAEC2" stroke-opacity=".38"/>
+
+  <g fill="#EDF2F9" font-family="Georgia, 'Iowan Old Style', 'Times New Roman', serif">
+    <text x="400" y="330" text-anchor="middle" font-size="46" letter-spacing="14" fill="#9FAEC2" font-family="ui-monospace, Menlo, monospace">THE</text>
+    <text x="400" y="470" text-anchor="middle" font-size="104" letter-spacing="-2">Leadership</text>
+    <text x="400" y="596" text-anchor="middle" font-size="104" letter-spacing="-2" font-style="italic" fill="#C6D0DE">Codex</text>
+  </g>
+
+  <line x1="300" y1="672" x2="500" y2="672" stroke="#9FAEC2" stroke-opacity=".7" stroke-width="2"/>
+
+  <text x="400" y="756" text-anchor="middle" font-size="30" fill="#A8B5C7"
+        font-family="ui-monospace, Menlo, monospace" letter-spacing="6">INTELLIGENCE</text>
+  <text x="400" y="806" text-anchor="middle" font-size="30" fill="#A8B5C7"
+        font-family="ui-monospace, Menlo, monospace" letter-spacing="6">EXCELLENCE</text>
+  <text x="400" y="856" text-anchor="middle" font-size="30" fill="#A8B5C7"
+        font-family="ui-monospace, Menlo, monospace" letter-spacing="6">TRANSCENDENCE</text>
+
+  <text x="400" y="1042" text-anchor="middle" font-size="38" fill="#EDF2F9"
+        font-family="Georgia, 'Iowan Old Style', serif" letter-spacing="1">Dr. Ebere Morgan</text>
+  <text x="400" y="1082" text-anchor="middle" font-size="22" fill="#6F8098"
+        font-family="ui-monospace, Menlo, monospace" letter-spacing="4">PH.D.</text>
+</svg>

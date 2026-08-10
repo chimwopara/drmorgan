@@ -1530,6 +1530,49 @@ main > .phero:last-child {
 }
 .ask__chip:hover { border-color: var(--accent); color: var(--accent); }
 
+/* ---- handing off to a person ---------------------------------------------
+   Offered inside the transcript when the reader asks for a human or the
+   assistant keeps coming up short, so the conversation stays visible behind
+   it and the offer reads as part of the answer rather than an interruption. */
+.ask__esc {
+  margin: 1rem 0 .4rem; padding: .9rem .95rem;
+  border: 1px solid rgba(237, 242, 249,.16); border-radius: var(--r-sm);
+  background: rgba(47,90,140,.06);
+}
+.ask__esc .ask__label { margin: 0 0 .35rem; }
+.ask__esc-note { font-size: .8rem; line-height: 1.55; color: rgba(237, 242, 249,.62); margin-bottom: .8rem; }
+
+.ask__esc-field { margin-bottom: .65rem; }
+.ask__esc-field label {
+  display: block; margin-bottom: .25rem;
+  font-family: var(--font-mono); font-size: .54rem; letter-spacing: .18em;
+  text-transform: uppercase; color: rgba(237, 242, 249,.45);
+}
+.ask__esc-field input, .ask__esc-field textarea {
+  display: block; width: 100%; background: transparent;
+  border: 0; border-bottom: 1px solid rgba(237, 242, 249,.2); border-radius: 0;
+  padding: .45rem 0; color: var(--bone);
+  font-family: var(--font-sans); font-size: .85rem; line-height: 1.55;
+  resize: vertical;
+}
+.ask__esc-field input:focus, .ask__esc-field textarea:focus { outline: none; border-bottom-color: var(--accent); }
+
+.ask__esc-row { display: flex; align-items: center; gap: .7rem; margin-top: .85rem; }
+.ask__esc-send {
+  padding: .5rem .9rem; border: 1px solid var(--accent); border-radius: var(--r-pill);
+  color: var(--accent); font-size: .75rem;
+  transition: color .3s var(--ease), background-color .3s var(--ease), opacity .3s var(--ease);
+}
+.ask__esc-send:hover:not(:disabled) { background: var(--accent); color: var(--ink); }
+.ask__esc-send:disabled { opacity: .45; }
+.ask__esc-skip { font-size: .74rem; color: rgba(237, 242, 249,.45); transition: color .3s var(--ease); }
+.ask__esc-skip:hover { color: rgba(237, 242, 249,.78); }
+
+.ask__esc-status:empty { display: none; }
+.ask__esc-status, .ask__esc-done {
+  margin-top: .65rem; font-size: .78rem; line-height: 1.55; color: rgba(237, 242, 249,.62);
+}
+
 .ask__form { display: flex; gap: .5rem; align-items: center; padding: .8rem 1.15rem 1rem; border-top: 1px solid rgba(237, 242, 249,.12); }
 .ask__form input {
   flex: 1; background: transparent; border: 0; border-bottom: 1px solid rgba(237, 242, 249,.2);
@@ -1557,6 +1600,9 @@ main > .phero:last-child {
   /* 16px is the threshold below which iOS Safari zooms the page on focus, and
      that zoom is what leaves the page scrolled sideways afterwards. */
   .ask__form input { font-size: 16px; padding: .7rem 0; }
+  /* Anything under 16px makes iOS zoom the page on focus. */
+  .ask__esc-field input, .ask__esc-field textarea { font-size: 16px; }
+  .ask__esc-send, .ask__esc-skip { padding-block: .6rem; font-size: .8rem; }
   .ask__form { gap: .35rem; padding: .75rem 1.1rem .5rem; }
   /* The title bar is the second drag surface, so it gives up the scroll too */
   .ask__head { padding: .7rem 3.4rem .8rem 1.1rem; touch-action: none; }
@@ -2132,6 +2178,15 @@ html.booted .boot { display: none; }
 .ask__hit em { color: var(--clay-deep); }
 .ask__chip   { border-color: color-mix(in srgb, var(--graphite) 15%, transparent); color: var(--graphite-2); }
 .ask__chip:hover { border-color: var(--clay); color: var(--clay-deep); }
+.ask__esc { border-color: color-mix(in srgb, var(--graphite) 13%, transparent); background: color-mix(in srgb, var(--clay) 5%, transparent); }
+.ask__esc-note, .ask__esc-status, .ask__esc-done { color: var(--graphite-2); }
+.ask__esc-field label { color: color-mix(in srgb, var(--graphite) 58%, transparent); }
+.ask__esc-field input, .ask__esc-field textarea { color: var(--graphite); border-bottom-color: color-mix(in srgb, var(--graphite) 20%, transparent); }
+.ask__esc-field input:focus, .ask__esc-field textarea:focus { border-bottom-color: var(--clay); }
+.ask__esc-send { border-color: var(--clay); color: var(--clay-deep); }
+.ask__esc-send:hover:not(:disabled) { background: var(--clay); color: var(--paper); }
+.ask__esc-skip { color: color-mix(in srgb, var(--graphite) 52%, transparent); }
+.ask__esc-skip:hover { color: var(--graphite); }
 .ask__close  { color: color-mix(in srgb, var(--graphite) 55%, transparent); }
 .ask__close:hover { color: var(--clay-deep); }
 .ask__form   { border-top-color: color-mix(in srgb, var(--graphite) 12%, transparent); }

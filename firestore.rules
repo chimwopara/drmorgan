@@ -1,0 +1,24 @@
+rules_version = '2';
+
+/* drmorgan.ai | Firestore access
+   ---------------------------------------------------------------------
+   Nothing. No browser reads this database and no browser writes to it.
+
+   Everything that touches it goes through the `opaline` Cloud Function,
+   which runs with the Admin SDK and is not subject to these rules at
+   all. That is deliberate: the function is where the password is
+   checked and where a session token is verified, and a rule set that
+   allowed a browser in directly would be a second, unguarded door into
+   the same room.
+
+   Readers get the overlay from that function's public GET, which serves
+   one document and nothing else.
+   --------------------------------------------------------------------- */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

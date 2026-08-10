@@ -1,0 +1,11 @@
+# The site is served from the root of this repository, so anything sitting
+# beside the pages would be served too. The server code is not part of the
+# site — it is deployed to Firebase — and there is no reason for it to be
+# fetchable from drmorgan.ai as well.
+exclude:
+  - functions
+  - firebase.json
+  - firestore.rules
+  - .firebaserc
+  - server
+  - README.md

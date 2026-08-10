@@ -65,6 +65,11 @@ export default {
       if (!name || !message) return json({ error: "Missing fields" }, 400, origin);
       if (message.length > 6000 || name.length > 200) return json({ error: "Too long" }, 413, origin);
 
+      // The assistant's hand-off form posts here too, carrying what was already
+      // discussed so a reply can pick up rather than start the question again.
+      const transcript = String(body.TRANSCRIPT || "").trim().slice(0, 4000);
+      const source = String(body.SOURCE || "").trim().slice(0, 60);
+
       const rows = [
         ["Name", name],
         ["Organization", body.COMPANY],
@@ -72,6 +77,7 @@ export default {
         ["Email", email],
         ["Area of interest", body.INTEREST],
         ["Nature of inquiry", body.NATURE],
+        ["Came from", source],
       ]
         .filter(([, v]) => v)
         .map(([k, v]) => `<tr><td style="padding:4px 14px 4px 0;color:#777">${esc(k)}</td><td>${esc(v)}</td></tr>`)
@@ -84,12 +90,17 @@ export default {
           sender: SENDER,
           to: [{ email: INBOX }],
           replyTo: { email, name },                     // hitting Reply answers the enquirer
-          subject: `Inquiry — ${name}${body.COMPANY ? ` · ${body.COMPANY}` : ""}`,
+          subject: `${source ? "Question" : "Inquiry"} — ${name}${body.COMPANY ? ` · ${body.COMPANY}` : ""}`,
           htmlContent:
             `<div style="font:15px/1.6 -apple-system,Segoe UI,sans-serif;color:#111">` +
             `<table style="border-collapse:collapse;margin-bottom:18px">${rows}</table>` +
             `<div style="white-space:pre-wrap;border-left:3px solid #C9A45C;padding-left:14px">${esc(message)}</div>` +
-            `<p style="color:#999;font-size:12px;margin-top:22px">Sent from the drmorgan.ai engagement portal</p></div>`,
+            (transcript
+              ? `<p style="color:#777;font-size:12px;margin:22px 0 6px">What they asked the assistant first</p>` +
+                `<div style="white-space:pre-wrap;font-size:13px;color:#555;border-left:2px solid #ddd;padding-left:14px">${esc(transcript)}</div>`
+              : "") +
+            `<p style="color:#999;font-size:12px;margin-top:22px">Sent from the drmorgan.ai ` +
+            `${source ? "site assistant" : "engagement portal"}</p></div>`,
         }),
       });
 
@@ -114,6 +125,20 @@ export default {
         .join("\n\n")
         .slice(0, 60000);
 
+      // Posts kept by hand in assets/data/updates.json. Most are excerpts:
+      // the logged-out LinkedIn page cuts every body off at about 150
+      // characters, so the model is told plainly where the text stops.
+      const updates = (Array.isArray(body.updates) ? body.updates : [])
+        .slice(0, 12)
+        .filter((u) => u && typeof u.text === "string")
+        .map((u) => {
+          const text = u.text.slice(0, 1200);
+          const when = u.date ? `(${String(u.date).slice(0, 40)}) ` : "";
+          return `- ${when}${text}${u.truncated ? " [EXCERPT: the rest is not available]" : ""}`;
+        })
+        .join("\n")
+        .slice(0, 8000);
+
       // Prior turns let people ask follow-ups naturally ("what about speaking?")
       const history = (Array.isArray(body.history) ? body.history : [])
         .slice(-6)
@@ -133,10 +158,20 @@ export default {
             "Never repeat the question back or open with 'Based on'.\n" +
             "Only decline if the material genuinely does not cover it (fees and client names are deliberately not " +
             "published), then say so plainly in one line and point to the engagement portal. " +
-            "Never invent credentials, clients, figures or dates.",
+            "Never invent credentials, clients, figures or dates.\n" +
+            "RECENT POSTS are what he has been writing publicly. Use them for what he is thinking about lately. " +
+            "Any marked [EXCERPT] stops mid-thought: draw on what is actually there and never carry the sentence " +
+            "on for him, never present your own continuation as his words, and never claim to know a post's date " +
+            "unless one is given.",
         },
         ...history,
-        { role: "user", content: `KEY FACTS\n${facts}\n\nSITE CONTENTS\n${context}\n\nQuestion: ${q}` },
+        {
+          role: "user",
+          content:
+            `KEY FACTS\n${facts}\n\nSITE CONTENTS\n${context}` +
+            (updates ? `\n\nRECENT POSTS\n${updates}` : "") +
+            `\n\nQuestion: ${q}`,
+        },
       ];
 
       const upstream = await fetch("https://api.deepseek.com/chat/completions", {
