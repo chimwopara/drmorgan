@@ -268,6 +268,24 @@ window.OpalineConfig = {
         '</article>'
     },
 
+    {
+      group: "Rows", name: "A list of writing",
+      hint: "Every post, newest first, wherever you drop this",
+      /* The container is empty on purpose. Opaline fills it from the posts
+         themselves on every visit, and leaves it alone in the editor: the
+         words in a card belong to the post, and are changed there. */
+      html:
+        '<section class="section surface-paper">' +
+          '<div class="shell">' +
+            '<div class="stack" style="margin-bottom:clamp(2rem,4vw,3rem)">' +
+              '<p class="kicker">Writing</p>' +
+              '<h2 class="big">Essays &amp; notes</h2>' +
+            '</div>' +
+            '<div class="duo" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr))" data-opl-posts></div>' +
+          '</div>' +
+        '</section>'
+    },
+
     /* ---- Single things ---- */
 
     {
@@ -325,15 +343,56 @@ window.OpalineConfig = {
 
   /* --- pages she makes ---------------------------------------------- */
 
-  /* Off. Pages created in the editor live at /p/<name> and need the host
-     to send that path to a single template. GitHub Pages has no rewrites,
-     so there is nowhere for such a page to be served from, and page
-     creation is hidden rather than offered and broken.
+  /* Where a page he makes — including every blog post — actually lives.
+
+     A real path like /p/name needs the host to send that path to a single
+     template, and GitHub Pages cannot rewrite anything. A query on one
+     real file needs nothing of the host at all, and is still a link
+     anybody can send anybody. blog.html serves them: with ?p= it is the
+     post, without it, the list.
 
      If this site ever moves behind the Cloudflare Worker that already
-     serves its API, add a route for /p/* returning opaline-page.html and
-     set this back to "/p/". */
-  newPagePath: null,
+     serves its API, add a route for /p/* to blog.html and change this to
+     "/p/" — the posts themselves do not move. */
+  newPagePath: "blog.html?p=",
+
+  /* --- posts -------------------------------------------------------- */
+
+  posts: {
+    /* One card in the list, in the site's own feature-card markup, so what
+       Opaline draws is indistinguishable from the cards already on the
+       front page. Placeholders are filled in and escaped by the overlay.
+
+       No data-reveal, for the usual reason: these are drawn long after
+       site.js handed its list to the IntersectionObserver, and an
+       unobserved one would sit at opacity 0 forever. */
+    card:
+      '<a class="feature" href="{{href}}" style="min-height:clamp(16rem,22vw,20rem)">' +
+        '<img src="{{image}}" alt="" width="800" height="640" loading="lazy" decoding="async">' +
+        '<p class="kicker kicker--bare">{{date}}</p>' +
+        '<h3 class="small feature__t">{{title}}</h3>' +
+        '<p class="feature__x">{{excerpt}}</p>' +
+        '<span class="feature__go"><i></i>Read this</span>' +
+      '</a>',
+
+    /* What the list says before anything has been written. */
+    empty: '<p class="lede">Nothing written yet.</p>',
+
+    /* A post with no picture of its own still has to fill a card, or the
+       row it sits in collapses around it. */
+    defaultImage: "assets/video/premise-poster.jpg",
+
+    /* What a new post starts as. He changes all of it on the page itself;
+       this only has to be something worth changing rather than an empty
+       screen. */
+    starter: function (title, opening) {
+      return [
+        '<h1 class="giant">' + title + '</h1>',
+        opening ? '<p class="lede">' + opening + '</p>' : '<p class="lede">The opening line.</p>',
+        '<p>Write here. Every part of this piece can be changed the same way as the rest of the site \u2014 the words, the pictures, and the blocks you add underneath.</p>'
+      ];
+    }
+  },
 
   /* --- extras -------------------------------------------------------- */
 

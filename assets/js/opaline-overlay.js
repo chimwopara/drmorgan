@@ -46,7 +46,7 @@
      front of a static site does not usually cache, so a new version
      actually arrives. The constant below is only the fallback for a page
      whose tag carries no version at all. */
-  var VERSION = (/[?&]v=([^&]+)/.exec(MY_SRC) || [])[1] || "2026-08-10";
+  var VERSION = (/[?&]v=([^&]+)/.exec(MY_SRC) || [])[1] || "2026-08-10b";
 
   /* Everything the host site can decide. A missing config is a valid
      config: every field below falls back to something that works. */
@@ -824,6 +824,137 @@
     }
   }
 
+  /* ------------------------------------------------------------------
+     Posts
+     ------------------------------------------------------------------
+     A post IS a page she made. That is the whole design rather than a
+     shortcut: pages she makes already have a title, an address of their
+     own, their own words for a search result, and a body of blocks the
+     editor can change in every way it can change a hand-written page. A
+     blog built on anything else would have been a second, poorer editor
+     living beside the first one — one where a picture could not be
+     swapped and a block could not be moved.
+
+     What a post adds to a page is a date, an opening line and a picture,
+     which are the three things a list of posts has to show, and a flag
+     saying it belongs in that list.
+
+     The list is rendered into any element the site marks data-opl-posts.
+     Where the site has said what one of its cards looks like, that markup
+     is used and the result is indistinguishable from the rest of the
+     page; where it has not, the fallback is plain and inherits whatever
+     the page around it wears.
+     ------------------------------------------------------------------ */
+
+  /* Pages she makes need an address, and what kind of address depends on
+     what the host can do. A host that can rewrite gets a real path. One
+     that cannot — GitHub Pages, most static buckets — gets a query on a
+     single template file, which needs nothing of the host at all and is
+     still a link anybody can send anybody. Both are configured the same
+     way, by writing one down in newPagePath. */
+  function pageHref(slug) {
+    var base = CONFIG.newPagePath;
+    if (!base || !slug) return null;
+    return base.indexOf("?") !== -1
+      ? base + encodeURIComponent(slug)
+      : base.replace(/\/*$/, "/") + encodeURIComponent(slug);
+  }
+
+  /* Newest first, which is the only order a blog is ever read in. Anything
+     without a date sorts last rather than being dropped: a post she has
+     not dated yet is still a post. */
+  function postList() {
+    var made = overlay.newPages || {};
+    return Object.keys(made)
+      .filter(function (slug) { return made[slug] && made[slug].post; })
+      .map(function (slug) {
+        var p = made[slug];
+        return {
+          slug: slug,
+          title: p.title || slug,
+          date: p.date || "",
+          excerpt: p.excerpt || "",
+          image: p.image || "",
+          href: pageHref(slug) || "#"
+        };
+      })
+      .sort(function (a, b) {
+        if (!a.date) return 1;
+        if (!b.date) return -1;
+        return a.date < b.date ? 1 : a.date > b.date ? -1 : 0;
+      });
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  /* "10 August 2026" in the reader's own locale, from a plain YYYY-MM-DD.
+     Split by hand rather than passed to Date(), because new Date("2026-08-10")
+     is UTC midnight and prints as the 9th to anybody west of Greenwich. */
+  function showDate(iso) {
+    var bits = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ""));
+    if (!bits) return String(iso || "");
+    var d = new Date(+bits[1], +bits[2] - 1, +bits[3]);
+    try {
+      return d.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+    } catch (e) { return iso; }
+  }
+
+  var POST_CARD =
+    '<article class="opl-post">' +
+      '<a href="{{href}}"><img src="{{image}}" alt="" loading="lazy" decoding="async"></a>' +
+      '<p><time datetime="{{datetime}}">{{date}}</time></p>' +
+      '<h3><a href="{{href}}">{{title}}</a></h3>' +
+      "<p>{{excerpt}}</p>" +
+    "</article>";
+
+  function fillTemplate(tpl, post) {
+    var values = {
+      slug: post.slug,
+      href: post.href,
+      title: post.title,
+      excerpt: post.excerpt,
+      datetime: post.date,
+      date: showDate(post.date),
+      image: post.image || (CONFIG.posts && CONFIG.posts.defaultImage) || ""
+    };
+    return String(tpl).replace(/\{\{(\w+)\}\}/g, function (whole, key) {
+      return key in values ? esc(values[key]) : whole;
+    });
+  }
+
+  function applyPosts() {
+    var homes = document.querySelectorAll("[data-opl-posts]");
+    if (!homes.length) return;
+
+    var spec = CONFIG.posts || {};
+    var list = postList();
+
+    /* Rewritten only when the answer has changed. This runs on every
+       apply, and every apply is triggered by a mutation, so writing the
+       same markup back unconditionally would be a loop that never
+       settles. */
+    var sig = JSON.stringify(list);
+
+    for (var i = 0; i < homes.length; i++) {
+      var home = homes[i];
+      if (home.getAttribute("data-opl-posts-sig") === sig) continue;
+      home.setAttribute("data-opl-posts-sig", sig);
+
+      /* Opaline wrote this, so Opaline owns it: the editor leaves it alone
+         rather than offering to edit words that the next render would
+         throw away. The post itself is where those words are changed. */
+      home.setAttribute("data-opl-skip", "");
+
+      home.innerHTML = list.length
+        ? list.map(function (post) { return fillTemplate(spec.card || POST_CARD, post); }).join("")
+        : (spec.empty || '<p class="opl-post-empty">Nothing written yet.</p>');
+    }
+  }
+
   function apply() {
     var page = (overlay.pages || {})[currentPage()] || {};
     var nodes = page.nodes || {};
@@ -832,6 +963,7 @@
     applyPins(page);
     applyMeta(page);
     applyNav();
+    applyPosts();
     buildStyleSheet(page);
 
     /* Every address resolved first, against the page as it stands, before
@@ -1491,6 +1623,12 @@
     /* The accent Opaline decided to wear, as a hex string. The editor uses
        it where a colour has to be computed rather than inherited. */
     accent: paintAccent,
+    /* Posts, and where one lives. The editor writes them; this reads them,
+       so both agree on the ordering and on the address without either
+       having to know how the host is set up. */
+    posts: postList,
+    pageHref: pageHref,
+    showDate: showDate,
     youtubeId: youtubeId,
     embedId: embedId,
     isVideoFrame: isVideoFrame,

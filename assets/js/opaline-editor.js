@@ -423,6 +423,11 @@
     var guard = 0;
     while (n && guard++ < 60) {
       if (n.id && n.id.indexOf("opl-") === 0) return true;
+      /* A list of posts is drawn from the posts themselves on every apply.
+         Editing a word in one would last until the next render and no
+         longer, so the words are not offered here — they are changed on
+         the post, which is the only place they exist. */
+      if (n.hasAttribute && n.hasAttribute("data-opl-skip")) return true;
       if (n.id === "chat-launcher" || n.id === "chat-panel") return true;
       if (n.classList && (n.classList.contains("opl-popup") || n.classList.contains("site-index-fallback"))) return true;
       if (n.matches && n.matches(CONTROLS)) return true;
@@ -1833,9 +1838,168 @@
     }, []);
   }
 
+  /* ---- posts ---- */
+
+  /* A post is a page she made, with a date on it. Everything below is about
+     the three fields a LIST of posts needs — when it was written, its
+     opening line, its picture. The post itself is written on the page, with
+     the same blocks, pictures and words as anywhere else on the site,
+     because it is a page. */
+  function openPosts() {
+    sheet("Posts", function (body) {
+      if (!CONFIG.newPagePath) {
+        body.appendChild(el("p", "opl-note",
+          "Posts need somewhere to live, and this site has not been given a place for them yet. " +
+          "Ask Wopara to switch it on \u2014 nothing on the site has to change for it."));
+        return;
+      }
+
+      body.appendChild(el("p", "opl-note",
+        "Write a post here, then open it and write on it the way you write on any other page. " +
+        "It appears in the list on any page that has one, newest first."));
+
+      var posts = OV.posts();
+      if (posts.length) {
+        var list = el("ul", "opl-list");
+        posts.forEach(function (post) {
+          var page = doc.newPages[post.slug];
+          var row = el("li");
+          row.appendChild(el("div", null, "<b>" + esc(post.title) + "</b><small>" +
+            (post.date ? esc(OV.showDate(post.date)) : "no date yet") + "</small>"));
+
+          var edit = el("button", "opl-btn", "Details");
+          edit.onclick = function () { openPostDetails(post.slug); };
+          row.appendChild(edit);
+
+          var go = el("button", "opl-btn", "Write");
+          go.onclick = function () { leaveFor("p/" + post.slug); };
+          row.appendChild(go);
+
+          var drop = el("button", "opl-btn danger icon", "&times;");
+          drop.title = "Delete this post";
+          drop.onclick = function () {
+            if (!confirm("Delete \u201c" + post.title + "\u201d? This cannot be undone once published.")) return;
+            delete doc.newPages[post.slug];
+            delete doc.pages["p/" + post.slug];
+            push();
+            openPosts();
+          };
+          row.appendChild(drop);
+          list.appendChild(row);
+          return page;
+        });
+        body.appendChild(list);
+      } else {
+        body.appendChild(el("p", "opl-note", "None yet."));
+      }
+
+      body.appendChild(el("hr", "opl-hr"));
+      body.appendChild(el("p", "opl-h", "Write a new post"));
+
+      var title = el("input", "opl-input");
+      title.placeholder = "What the post is called";
+      body.appendChild(field("Title", title));
+
+      var when = el("input", "opl-input");
+      when.type = "date";
+      when.value = todayISO();
+      body.appendChild(field("Date", when));
+
+      var lede = el("textarea", "opl-area");
+      lede.placeholder = "One or two sentences. This is what shows in the list, and what a search result shows.";
+      body.appendChild(field("Opening line", lede));
+
+      var make = el("button", "opl-btn primary", "Start the post");
+      make.onclick = function () {
+        var name = title.value.trim();
+        if (!name) { toast("Give the post a title", true); return; }
+        var slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48);
+        if (!slug) { toast("That title cannot be made into an address", true); return; }
+        if (!doc.newPages) doc.newPages = {};
+        if (doc.newPages[slug]) { toast("There is already something at that address", true); return; }
+
+        doc.newPages[slug] = {
+          title: name,
+          post: true,
+          date: when.value || todayISO(),
+          excerpt: lede.value.trim(),
+          image: (CONFIG.posts && CONFIG.posts.defaultImage) || "",
+          nav: false,
+          blocks: (CONFIG.posts && CONFIG.posts.starter)
+            ? CONFIG.posts.starter(name, lede.value.trim())
+            : ["<h1>" + esc(name) + "</h1>",
+               "<p>" + esc(lede.value.trim() || "Write here.") + "</p>"]
+        };
+        push();
+        toast("Started. Publish, then open it to write.");
+        openPosts();
+      };
+      body.appendChild(make);
+    }, []);
+  }
+
+  function todayISO() {
+    var d = new Date();
+    return d.getFullYear() + "-" +
+      ("0" + (d.getMonth() + 1)).slice(-2) + "-" +
+      ("0" + d.getDate()).slice(-2);
+  }
+
+  function openPostDetails(slug) {
+    var page = (doc.newPages || {})[slug];
+    if (!page) { openPosts(); return; }
+
+    sheet("Post details", function (body) {
+      var title = el("input", "opl-input");
+      title.value = page.title || "";
+      title.oninput = function () { page.title = title.value; };
+      body.appendChild(field("Title", title));
+
+      var when = el("input", "opl-input");
+      when.type = "date";
+      when.value = page.date || "";
+      when.oninput = function () { page.date = when.value; };
+      body.appendChild(field("Date", when));
+
+      var lede = el("textarea", "opl-area");
+      lede.value = page.excerpt || "";
+      lede.oninput = function () { page.excerpt = lede.value; };
+      body.appendChild(field("Opening line", lede));
+
+      var pic = el("input", "opl-input");
+      pic.value = page.image || "";
+      pic.placeholder = "assets/img/something.jpg";
+      pic.oninput = function () { page.image = pic.value.trim(); };
+      body.appendChild(field("Picture for the list", pic));
+
+      var pick = el("button", "opl-btn", "Upload a picture");
+      pick.onclick = function () {
+        pickFile()
+          .then(upload)
+          .then(function (url) { page.image = url; pic.value = url; push(); })
+          .catch(function () { /* upload() has already said so */ });
+      };
+      body.appendChild(pick);
+
+      body.appendChild(el("hr", "opl-hr"));
+      body.appendChild(el("p", "opl-note",
+        "Its address is " + esc(OV.pageHref(slug) || "") + " \u2014 that cannot be changed once anybody has the link."));
+
+      var done = el("button", "opl-btn primary", "Save these details");
+      done.onclick = function () { push(); toast("Saved. Publish when you are ready."); openPosts(); };
+      body.appendChild(done);
+    }, []);
+  }
+
   function leaveFor(page) {
-    var made = (CONFIG.newPagePath || "/p/").replace(/^\/|\/$/g, "");
-    var go = function () { location.href = page.indexOf(made + "/") === 0 ? (location.origin + "/" + page) : page; };
+    /* A page she made is addressed however this host can serve one — a real
+       path where the host rewrites, a query on one template file where it
+       cannot. Both are worked out in one place, by the overlay, so the
+       editor never has to know which kind of host it is standing on. */
+    var go = function () {
+      var made = /^p\/(.+)$/.exec(page);
+      location.href = made ? (OV.pageHref(made[1]) || page) : page;
+    };
     if (!dirty()) { go(); return; }
     if (confirm("You have changes that are not published. Publish them before leaving this page?")) {
       publish().then(go);
@@ -2046,6 +2210,7 @@
       ["This page's title &amp; sharing card", openIdentity],
       ["Menus &amp; links", openNav],
       ["Pages", openPages],
+      ["Posts", openPosts],
       ["Popups", openPopups],
       ["Check the site", openChecks],
       ["What I've changed", openChanges],
