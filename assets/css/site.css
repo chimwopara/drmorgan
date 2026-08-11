@@ -1410,6 +1410,25 @@ main > .phero:last-child {
    -------------------------------------------------------------------------- */
 .ask { position: fixed; right: clamp(.9rem,2vw,1.75rem); bottom: clamp(.9rem,2vw,1.75rem); z-index: 240; }
 
+/* .ask is a hole its own children punch through, and that is the whole point.
+   The wrapper has to stay put — the panel and scrim inside it are fixed to the
+   viewport, so a transform here would strand them (see askClearance). The
+   clearance nudge therefore moves the PILL, and a transform moves what is
+   painted, never the box that was laid out. So .ask goes on standing in the
+   bottom-right corner at pill size long after the pill has walked away from it.
+
+   Nothing is drawn in that corner by then, but a plain div still answers a tap.
+   Once the footer arrives it lands on the footer's bottom row — over the legal
+   line, and squarely over "Edit with Opaline", which on a phone is narrow
+   enough to sit inside the rectangle end to end. The link looked ordinary and
+   simply did nothing.
+
+   So the wrapper stops taking taps and the three things a reader can actually
+   see take them instead. The rule that mutes the pill while the sheet is open
+   is more specific than this one and still wins. */
+.ask { pointer-events: none; }
+.ask__btn, .ask__panel, .ask__scrim { pointer-events: auto; }
+
 .ask__btn {
   display: flex; align-items: center; gap: .6rem;
   padding: .75rem 1.05rem;
