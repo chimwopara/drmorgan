@@ -312,7 +312,8 @@ function aiSystem(site) {
   '{"op":"css","value":".some-class { ... }"}   site-wide CSS, appended',
   "",
   "Rules: quote ids exactly as given and never invent one. Prefer the fewest ops that do the job.",
-  "Use the palette variables (var(--wine), var(--forest), var(--gold), var(--ink)) where a colour is wanted.",
+  "Prefer the site's own CSS custom properties for colour where the page uses them, so a choice",
+  "still reads correctly if the site is switched between light and dark. A literal colour cannot.",
   "If the request is not something these ops can do, return an empty ops array and say so kindly in reply."
   ].join("\n");
 }
@@ -320,7 +321,20 @@ function aiSystem(site) {
 async function askDeepSeek(prompt, context, key, site) {
   const messages = [
     { role: "system", content: aiSystem(site) },
-    { role: "user", content: "Elements on " + (context.page || "this page") + ":\n" + context.outline + "\n\nBusayo asks: " + prompt }
+    {
+      role: "user",
+      content:
+        "Elements on " + (context.page || "this page") + ":\n" + context.outline +
+        (context.target
+          /* Named rather than left to be guessed at from a list of a hundred
+             and seventy. Without this, "make this bigger" lands on whichever
+             element the words happen to match first, which reads to her as
+             being ignored. */
+          ? "\n\nSHE HAS SELECTED THIS ONE, and the request is about it:\n" + context.target +
+            "\nChange that element. Touch another only where the request plainly asks for it."
+          : "\n\nNothing is selected: the request is about the page as a whole.") +
+        "\n\nThe owner asks: " + prompt
+    }
   ];
   const upstream = await fetch("https://api.deepseek.com/chat/completions", {
     method: "POST",
@@ -753,7 +767,10 @@ exports.opaline = onRequest(
 
         const context = {
           page: String((body.context && body.context.page) || "").slice(0, 60),
-          outline: String((body.context && body.context.outline) || "").slice(0, 24000)
+          outline: String((body.context && body.context.outline) || "").slice(0, 24000),
+          /* What she had selected when she asked. Empty means the request is
+             about the page rather than one thing on it. */
+          target: String((body.context && body.context.target) || "").slice(0, 300)
         };
         const out = await askDeepSeek(prompt, context, key, site);
 

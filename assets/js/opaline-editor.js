@@ -1638,6 +1638,8 @@
 
   var aiLog = [];
 
+  var GENERAL_HINT = "Make the headings larger across the page. Change the buttons to forest green. Take the third card away.";
+
   function pageOutline() {
     var lines = [];
     var all = document.querySelectorAll("[data-opl-e]");
@@ -1701,14 +1703,49 @@
       });
       body.appendChild(log);
 
+      /* What she had selected when she pressed Ask, carried in as the thing
+         the request is about. Otherwise "make this bigger" has to be
+         guessed at from a list of a hundred and seventy elements, and the
+         assistant picks the wrong one — which reads as it ignoring her.
+
+         Shown rather than assumed, with a cross, because half of what
+         anybody asks is about the page and not about one thing on it. */
+      var aiTarget = selected && selected.isConnected ? {
+        id: OV.nodeId(selected),
+        kind: selected.getAttribute("data-opl-e") || "",
+        tag: selected.tagName.toLowerCase(),
+        label: labelOf(selected)
+      } : null;
+
+      var chipRow = el("div");
+      chipRow.style.margin = "0 0 10px";
+
+      function drawTarget() {
+        chipRow.innerHTML = "";
+        if (!aiTarget) return;
+        var chip = el("span", "opl-target");
+        chip.innerHTML = "<b>This one:</b> " + esc(aiTarget.label) +
+          ' <button type="button" aria-label="Ask about the whole page instead">&times;</button>';
+        chip.querySelector("button").onclick = function () {
+          aiTarget = null;
+          drawTarget();
+          area.placeholder = GENERAL_HINT;
+        };
+        chipRow.appendChild(chip);
+      }
+      body.appendChild(chipRow);
+
       body.appendChild(el("p", "opl-note",
-        "Describe what you want changed on this page in your own words. " +
+        "Describe what you want changed in your own words. " +
         "Anything it does lands in Undo, so nothing here is final until you publish."));
 
       var area = el("textarea", "opl-area");
-      area.placeholder = "Make the heading larger and centre it. Change the terracotta buttons to forest green. Take the third card away.";
+      area.placeholder = aiTarget
+        ? "Make it larger and centre it. Change its colour. Say this instead: \u2026"
+        : GENERAL_HINT;
       area.style.minHeight = "96px";
       body.appendChild(area);
+      drawTarget();
 
       var send = el("button", "opl-btn primary", "Ask");
       send.style.marginTop = "12px";
@@ -1720,7 +1757,19 @@
         aiLog.push({ who: "you", text: prompt });
         log.appendChild(el("div", "opl-ai-turn you", "<b>You</b>" + esc(prompt)));
 
-        post({ action: "ai", prompt: prompt, context: { page: pageKey(), outline: pageOutline() } })
+        post({
+          action: "ai",
+          prompt: prompt,
+          context: {
+            page: pageKey(),
+            outline: pageOutline(),
+            /* Named, so the assistant changes the thing she is looking at
+               rather than the first one that matches her words. */
+            target: aiTarget
+              ? aiTarget.id + " [" + aiTarget.kind + " " + aiTarget.tag + "] " + aiTarget.label
+              : ""
+          }
+        })
           .then(function (data) {
             var made = applyOps(data.ops || []);
             if (made) push();
@@ -3307,7 +3356,9 @@
 
     sheet("How it looks", function (body) {
       var row = el("div", "opl-screens");
+      var size = el("span", "opl-size");
       var stage = el("div", "opl-stage");
+      var screen = el("div", "opl-screen");
       var frame = el("iframe", "opl-frame");
       frame.setAttribute("title", "Preview");
 
@@ -3315,15 +3366,28 @@
         row.querySelectorAll(".opl-chip").forEach(function (c) {
           c.classList.toggle("on", c.textContent === chosen.label);
         });
+
+        /* Scaled, not resized: the page inside has to go on believing it is
+           the width she chose, or its own media queries answer for a screen
+           nobody is looking at. */
         frame.style.width = chosen.w + "px";
         frame.style.height = chosen.h + "px";
-        /* Scaled down to fit the sheet, but scaled — not resized — so the
-           page inside still believes it is the width she chose, which is
-           the only way its own media queries answer honestly. */
-        var room = stage.clientWidth - 24;
+
+        var room = Math.max(160, stage.clientWidth - 24);
         var scale = Math.min(1, room / chosen.w);
         frame.style.transform = "scale(" + scale + ")";
-        stage.style.height = (chosen.h * scale + 24) + "px";
+
+        /* And this is the part that was missing. A transform paints an
+           element smaller; it does not make it take up less room. The stage
+           was reserving 1280px of width for something drawn at 588 and
+           centring the difference, so Desktop arrived as a narrow column
+           adrift in the middle — while being, all along, the desktop
+           layout in a slot far too wide for it. The wrapper is the size
+           actually seen; the frame keeps its true width inside it. */
+        screen.style.width = Math.round(chosen.w * scale) + "px";
+        screen.style.height = Math.round(chosen.h * scale) + "px";
+
+        size.textContent = chosen.w + " \u00d7 " + chosen.h;
       };
 
       sizes.forEach(function (s) {
@@ -3336,8 +3400,16 @@
 
       var here = location.pathname + (location.pathname.indexOf("?") === -1 ? "?" : "&") + "opl-preview=1";
       frame.src = here;
-      stage.appendChild(frame);
+      screen.appendChild(frame);
+      stage.appendChild(screen);
+      row.appendChild(size);
       body.appendChild(stage);
+
+      /* The sheet slides in, so the stage has no width worth measuring on
+         the frame this is called from. Watched rather than guessed at with
+         a timer, and it answers a resized window for free. */
+      if (window.ResizeObserver) new ResizeObserver(draw).observe(stage);
+      else window.addEventListener("resize", draw);
 
       body.appendChild(el("p", "opl-note",
         "This is the page as it stands, changes and all, at that exact width — including changes you have not published. " +

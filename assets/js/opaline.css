@@ -689,14 +689,74 @@ body.opl-panel-open { padding-right: 336px; }
   display: flex;
   justify-content: center;
 }
-.opl-frame {
-  border: 0;
+
+/* The size actually seen.
+
+   A transform paints an element smaller; it does not make it take up less
+   room. Sized only by the frame, the stage was reserving 1280px of width
+   for something drawn at 588 and centring the difference, so Desktop
+   turned up as a narrow column adrift in the middle of the panel — and it
+   was drawing the desktop layout all along, in a slot far too wide for it.
+
+   The wrapper is the scaled size, so the stage lays out around what is
+   there. The frame keeps its true width inside it, which is the whole
+   point: the page in it has to believe it is 1280px or its own media
+   queries answer for the wrong screen. */
+.opl-screen {
+  position: relative;
+  flex: none;
+  overflow: hidden;
   border-radius: 8px;
-  background: #fff;
-  transform-origin: top center;
   box-shadow: 0 14px 40px -14px rgba(0, 0, 0, .7);
+}
+.opl-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 0;
+  background: #fff;
+  transform-origin: top left;
+}
+/* What the request is about, when it is about one thing. */
+.opl-target {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 6px 8px 6px 11px;
+  border: 1px solid var(--opl-line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--opl-accent) 12%, transparent);
+  font: 400 11.5px/1.35 ui-sans-serif, system-ui, sans-serif;
+  color: var(--opl-text);
+  overflow: hidden;
+}
+.opl-target b {
+  font-weight: 600;
+  color: var(--opl-mute);
   flex: none;
 }
+.opl-target button {
+  appearance: none;
+  border: 0;
+  background: rgba(255, 255, 255, .1);
+  color: var(--opl-text);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  flex: none;
+}
+.opl-target button:hover { background: rgba(255, 255, 255, .24); }
+
+.opl-size {
+  font: 500 11px/1 ui-monospace, Menlo, monospace;
+  letter-spacing: .08em;
+  color: var(--opl-mute);
+}
+
 
 /* The tour. */
 #opl-tour {
