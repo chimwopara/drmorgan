@@ -319,6 +319,46 @@
   <button class="ask__btn" type="button" data-ask-toggle aria-expanded="false"><svg class="ask__ico" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13.7 9.5a1.9 1.9 0 0 1-1.9 1.9H6L2.3 13.9V4.3a1.9 1.9 0 0 1 1.9-1.9h7.6a1.9 1.9 0 0 1 1.9 1.9z"/><path d="M5.4 5.9h5.2M5.4 8.3h3.2"/></svg><svg class="ask__jump" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.8v10.4M3.6 9l4.4 4.4L12.4 9"/></svg><span data-ask-txt>Get Help</span></button>
 </div>
 
+<!-- ==========================================================================
+     The book pop-up. The same card on every page except the book page itself,
+     which is where it sends people. It waits until a reader has settled, and
+     closing it or joining from it retires it for good on that browser — see
+     promo() and booklist() in assets/js/site.js.
+     ========================================================================== -->
+<aside class="promo" data-promo aria-hidden="true">
+  <div class="promo__card" role="dialog" aria-label="A new book is coming">
+    <button class="promo__close" type="button" data-promo-close aria-label="Close this announcement">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg>
+    </button>
+    <div class="promo__head">
+      <picture class="promo__shot">
+        <source srcset="assets/img/book-fourth-dimension-420.webp" type="image/webp">
+        <img src="assets/img/book-fourth-dimension-420.png" alt="" width="420" height="657" loading="lazy" decoding="async">
+      </picture>
+      <div>
+        <p class="promo__lbl">Coming soon</p>
+        <p class="promo__t">The Fourth Dimension</p>
+        <p class="promo__x">A major new book by Ebere Morgan, Ph.D., introducing Leadership Intelligence for a world that knows more but leads less.</p>
+      </div>
+    </div>
+    <form class="promo__form" data-booklist
+          data-booklist-source="Pop-up"
+          data-booklist-done="You&#8217;re on the list. Publication updates are on their way.">
+      <div class="field">
+        <label for="p-email">Email address</label>
+        <input type="email" id="p-email" name="EMAIL" autocomplete="email" placeholder="name@organization.com" required>
+      </div>
+      <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden">
+        <label for="p-check">Leave this field empty</label>
+        <input type="text" id="p-check" name="email_address_check" tabindex="-1" autocomplete="off">
+      </div>
+      <button class="btn" type="submit">Keep me informed</button>
+      <p class="form__status" data-booklist-status role="status" aria-live="polite"></p>
+    </form>
+    <a class="promo__more" href="store.html">Discover the book<i aria-hidden="true"></i></a>
+  </div>
+</aside>
+
 <script src="assets/js/site.js" defer></script>
 
 <!-- Wopara Opaline. Config first, engine second. The editor itself is fetched

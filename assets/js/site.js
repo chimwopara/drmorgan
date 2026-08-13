@@ -966,6 +966,166 @@
     });
   }
 
+  /* ------------------------------------------------------------- book list
+     One list, two doors into it: the form on the book page and the form in
+     the pop-up. Both post to the same place the engagement form does, so
+     there is no second service to keep alive and no key in this file.
+
+     Two things are remembered, and they are remembered separately, because
+     they mean different things: JOINED is a person who is on the list, and
+     DISMISSED is a person who said no to being asked. Either one is enough to
+     stop the pop-up for good; only the first is a reason to stop asking.
+     ------------------------------------------------------------------------ */
+  var JOINED = "dm-booklist", DISMISSED = "dm-promo";
+  var BOOK = "The Fourth Dimension";
+
+  function mark(key) { try { localStorage.setItem(key, new Date().toISOString()); } catch (e) {} }
+  function marked(key) { try { return !!localStorage.getItem(key); } catch (e) { return false; } }
+
+  function booklist() {
+    $$("[data-booklist]").forEach(function (f) {
+      var status = $("[data-booklist-status]", f),
+          btn = f.querySelector('button[type="submit"]');
+
+      function say(m) { if (status) status.textContent = m; }
+
+      /* The form has done its one job, so it stops being a form. Leaving the
+         fields sitting there invites a second submission from somebody who
+         cannot tell whether the first one landed. */
+      function thanks() {
+        var box = document.createElement("div");
+        box.className = "joined";
+        box.setAttribute("role", "status");
+        box.innerHTML =
+          '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" ' +
+          'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.5 10.4 3.6 3.6 7.4-8"/></svg>' +
+          '<p></p>';
+        $("p", box).textContent = f.dataset.booklistDone ||
+          "You are on the list. Publication updates are on their way.";
+        if (f.parentNode) f.parentNode.replaceChild(box, f);
+        mark(JOINED);
+        mark(DISMISSED);
+        document.dispatchEvent(new CustomEvent("dm:joined", { detail: { from: box } }));
+      }
+
+      f.addEventListener("submit", function (e) {
+        if (!f.checkValidity()) return;
+        e.preventDefault();
+
+        var trap = f.querySelector('[name="email_address_check"]');
+        if (trap && trap.value) return;                    // bot
+
+        var d = new FormData(f),
+            email = String(d.get("EMAIL") || "").trim(),
+            name = String(d.get("NAME") || "").trim(),
+            where = f.dataset.booklistSource || "Book list";
+
+        /* The pop-up asks for an address and nothing else — one field is the
+           whole reason it is bearable. Something has to go in the name column
+           at the other end, so the address stands in for it. */
+        if (!name) name = email.split("@")[0];
+
+        if (!API_BASE) {
+          location.href = "mailto:drmorgan@drmorgan.ai" +
+            "?subject=" + encodeURIComponent("Book list — " + BOOK) +
+            "&body=" + encodeURIComponent("Please add me to the book list.\n\nName: " + name + "\nEmail: " + email);
+          say("Opening your mail client. If nothing happens, write to drmorgan@drmorgan.ai.");
+          return;
+        }
+
+        if (btn) btn.disabled = true;
+        say("Adding you…");
+
+        fetch(API_BASE + "/inquiry", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            NAME: name,
+            EMAIL: email,
+            LIST: BOOK,
+            SOURCE: where,
+            MESSAGE: "Add me to the book list for " + BOOK + ". (Sent from the " + where.toLowerCase() + ".)"
+          })
+        })
+          .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+          .then(thanks)
+          .catch(function () {
+            if (btn) btn.disabled = false;
+            say("That did not send. Write to drmorgan@drmorgan.ai and you will be added by hand.");
+          });
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------------- pop-up
+     The announcement, for readers who came to the site for something else.
+     It waits until somebody has actually settled into a page, it takes one
+     tap to close, and once it has been closed or used it is gone for good on
+     that browser. It is never built at all on the book page itself, which is
+     the page it would be sending them to.
+     ------------------------------------------------------------------------ */
+  function promo() {
+    var root = $("[data-promo]");
+    if (!root) return;
+
+    function drop() { if (root.parentNode) root.parentNode.removeChild(root); }
+
+    if (marked(JOINED) || marked(DISMISSED)) { drop(); return; }
+
+    var shown = false, armed = false, timer = null, arm = null;
+
+    function show() {
+      if (shown || !root.parentNode) return;
+      /* Never over a sheet somebody already has open — the menu and the
+         assistant both lock the page while they are up. Try again later. */
+      if (document.body.classList.contains("is-locked")) {
+        clearTimeout(timer);
+        timer = setTimeout(show, 6000);
+        return;
+      }
+      shown = true;
+      clearTimeout(timer);
+      removeEventListener("scroll", onScroll);
+      root.classList.add("is-on");
+      root.setAttribute("aria-hidden", "false");
+      document.documentElement.classList.add("is-promo-on");
+    }
+
+    function hide(remember) {
+      shown = false;
+      clearTimeout(timer);
+      root.classList.remove("is-on");
+      root.setAttribute("aria-hidden", "true");
+      document.documentElement.classList.remove("is-promo-on");
+      if (remember) mark(DISMISSED);
+      setTimeout(drop, 800);
+    }
+
+    /* A fifth of the way down, or a minute in, whichever comes first — but
+       never in the first few seconds, when the page is still arriving. */
+    function onScroll() {
+      if (!armed) return;
+      var max = document.documentElement.scrollHeight - innerHeight;
+      if (max > 0 && window.scrollY / max > 0.2) show();
+    }
+
+    arm = setTimeout(function () { armed = true; onScroll(); }, 7000);
+    timer = setTimeout(show, 60000);
+    addEventListener("scroll", onScroll, { passive: true });
+
+    var closeBtn = $("[data-promo-close]", root);
+    if (closeBtn) closeBtn.addEventListener("click", function () { clearTimeout(arm); hide(true); });
+
+    addEventListener("keydown", function (e) { if (e.key === "Escape" && shown) hide(true); });
+
+    /* Joining from inside the card: hold the thank-you long enough to be
+       read, then take the card away. Joining anywhere else: go at once. */
+    document.addEventListener("dm:joined", function (e) {
+      var inside = e.detail && e.detail.from && root.contains(e.detail.from);
+      setTimeout(function () { hide(false); }, inside ? 4500 : 0);
+    });
+  }
+
   /* ------------------------------------------------------- monogram draw */
   function monogram() {
     $$("[data-draw]").forEach(function (p) {
@@ -1849,7 +2009,7 @@
     theme(); bootClear(); monogram(); header(); menu(); curtain(); reveal(); hero(); ribbon(); ambient(); askClearance(); railNav(); glass(); rocket();
     tilt(); magnetic(); statement(); panels(); spine(); counters();
     clicks(); parallax(); blueprint(); heroDepth();
-    accordion(); sidenav(); rails(); selects(); prefill(); mailform(); assistant(); scrollState(); year();
+    accordion(); sidenav(); rails(); selects(); prefill(); mailform(); booklist(); promo(); assistant(); scrollState(); year();
   }
 
   document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", boot) : boot();

@@ -15,6 +15,11 @@ public. This Worker keeps the keys server-side and exposes only two narrow route
 3. **Settings → Variables and Secrets** → add two **Secrets**:
    - `BREVO_API_KEY` — Brevo → *SMTP & API* → *API Keys* → Generate
    - `DEEPSEEK_API_KEY` — platform.deepseek.com → *API Keys*
+
+   …and, if the book list should file itself rather than only arrive as email,
+   one plain **Variable**:
+   - `BREVO_BOOKLIST_ID` — Brevo → *Contacts → Lists* → create a list (e.g.
+     "The Fourth Dimension") and copy its numeric id
 4. Copy the Worker URL, e.g. `https://drmorgan-api.<subdomain>.workers.dev`
 5. In `assets/js/site.js` set:
 
@@ -36,6 +41,7 @@ subscribe people to a list; they do not deliver the enquiry to an inbox.
 | Route | Purpose |
 |---|---|
 | `POST /inquiry` | Emails the engage form to `drmorgan@drmorgan.ai`, `Reply-To` set to the enquirer |
+| `POST /inquiry` with `LIST` | A book-list signup. Joins the Brevo list named by `BREVO_BOOKLIST_ID` **and** emails the inbox, so a missing id loses nobody |
 | `POST /ask` | DeepSeek answer grounded only in the site sections the page supplies |
 
 Both validate origin, reject oversized input, and honour the form honeypot.

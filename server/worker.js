@@ -3,12 +3,18 @@
    Holds the secrets that must never reach the browser.
 
    Routes
-     POST /inquiry  -> Brevo transactional email (the engage form)
+     POST /inquiry  -> Brevo transactional email (the engage form, and the
+                       book-list signups, which also join a Brevo contact list)
      POST /ask      -> DeepSeek answer, grounded in the site's own sections
 
    Secrets (set in the Cloudflare dashboard, never in this file):
      BREVO_API_KEY     Brevo > SMTP & API > API Keys
      DEEPSEEK_API_KEY  platform.deepseek.com > API Keys
+
+   Plain variables:
+     BREVO_BOOKLIST_ID  the numeric id of the Brevo list book-list signups
+                        join. Optional: without it every signup still arrives
+                        as an email, it is simply not filed.
    ========================================================================== */
 
 const ALLOWED = ["https://drmorgan.ai", "https://www.drmorgan.ai"];
@@ -70,6 +76,29 @@ export default {
       const transcript = String(body.TRANSCRIPT || "").trim().slice(0, 4000);
       const source = String(body.SOURCE || "").trim().slice(0, 60);
 
+      // The book list posts here as well. It is not an enquiry — nobody is
+      // waiting for a reply — so it goes into a Brevo contact list if one is
+      // configured. The email below is sent either way: an unset list id must
+      // lose a signup, not swallow it.
+      const list = String(body.LIST || "").trim().slice(0, 80);
+      if (list && env.BREVO_BOOKLIST_ID) {
+        try {
+          await fetch("https://api.brevo.com/v3/contacts", {
+            method: "POST",
+            headers: { "api-key": env.BREVO_API_KEY, "Content-Type": "application/json", accept: "application/json" },
+            body: JSON.stringify({
+              email,
+              attributes: { FIRSTNAME: name },
+              listIds: [Number(env.BREVO_BOOKLIST_ID)],
+              updateEnabled: true,        // a second signup is an update, not a 400
+            }),
+          });
+        } catch {
+          // Fall through to the email. Being on the list matters less than
+          // his knowing somebody asked to be.
+        }
+      }
+
       const rows = [
         ["Name", name],
         ["Organization", body.COMPANY],
@@ -77,6 +106,7 @@ export default {
         ["Email", email],
         ["Area of interest", body.INTEREST],
         ["Nature of inquiry", body.NATURE],
+        ["Book list", list],
         ["Came from", source],
       ]
         .filter(([, v]) => v)
@@ -90,7 +120,9 @@ export default {
           sender: SENDER,
           to: [{ email: INBOX }],
           replyTo: { email, name },                     // hitting Reply answers the enquirer
-          subject: `${source ? "Question" : "Inquiry"} — ${name}${body.COMPANY ? ` · ${body.COMPANY}` : ""}`,
+          subject: list
+            ? `Book list — ${name}`
+            : `${source ? "Question" : "Inquiry"} — ${name}${body.COMPANY ? ` · ${body.COMPANY}` : ""}`,
           htmlContent:
             `<div style="font:15px/1.6 -apple-system,Segoe UI,sans-serif;color:#111">` +
             `<table style="border-collapse:collapse;margin-bottom:18px">${rows}</table>` +
@@ -100,7 +132,7 @@ export default {
                 `<div style="white-space:pre-wrap;font-size:13px;color:#555;border-left:2px solid #ddd;padding-left:14px">${esc(transcript)}</div>`
               : "") +
             `<p style="color:#999;font-size:12px;margin-top:22px">Sent from the drmorgan.ai ` +
-            `${source ? "site assistant" : "engagement portal"}</p></div>`,
+            `${list ? "book list" : source ? "site assistant" : "engagement portal"}</p></div>`,
         }),
       });
 
