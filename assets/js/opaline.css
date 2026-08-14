@@ -1575,3 +1575,47 @@ body.opl-peeking #opl-panel { display: none; }
 }
 
 #opl-count.bad { color: #E88B6F; }
+
+/* ==========================================================================
+   The sign-in box, which is four boxes
+   --------------------------------------------------------------------------
+   Signing in, having forgotten, typing the code that came back, and choosing
+   a password for the first time. One card, one row of buttons at the foot of
+   it, so no screen can leave the previous screen's buttons behind.
+   ========================================================================== */
+
+#opl-gate .op-gate-acts {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+#opl-gate .op-gate-acts .primary { flex: 1; }
+
+#opl-gate [data-opl-screen] .opl-input + .opl-input { margin-top: 9px; }
+
+/* Not a button pretending to be a link: a link, which is what it does. It
+   sits under the password because that is where somebody looks the moment
+   the password did not work. */
+.op-gate-quiet {
+  display: inline-block;
+  margin-top: 11px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--opl-mute);
+  font: 500 12px/1.4 ui-sans-serif, system-ui, sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color .18s ease;
+}
+.op-gate-quiet:hover { color: var(--opl-accent); }
+
+/* Where the code went, or what to do because it could not go anywhere. */
+#opl-gate .opl-note.on {
+  color: var(--opl-text);
+  padding: 9px 11px;
+  border: 1px solid var(--opl-line);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .05);
+}

@@ -2082,6 +2082,203 @@
     }, []);
   }
 
+  /* ==================================================================
+     Who can edit this site
+     ==================================================================
+     One password with nobody's name on it is the right shape for one
+     person editing her own site, and the wrong shape for two. So this
+     sheet has two faces, and which one it wears is the site's answer
+     rather than a setting: before any second editor is possible, she
+     puts her own address to the door.
+
+     Nothing here is clever. It is the four things somebody actually
+     needs: see who can get in, let somebody in, put somebody out, and
+     change your own password.
+     ================================================================== */
+
+  function openEditors() {
+    post({ action: "editors" })
+      .then(drawEditors)
+      .catch(function (err) { toast(err.message, true); });
+  }
+
+  function drawEditors(data) {
+    sheet("Who can edit this site", function (body) {
+      var attached = data.mode === "email";
+
+      /* ---- the step before everything else ---- */
+      if (!attached) {
+        body.appendChild(el("p", "opl-note",
+          "This site signs in with one password and nobody's name on it, which is fine while you are " +
+          "the only one editing it. Before anybody else can be let in, put your own address to the " +
+          "door: from then on the box asks for an address and a password, each person has their own, " +
+          "and a forgotten password can be reset for one of you without disturbing the other."));
+
+        body.appendChild(el("p", "opl-h", "Attach your address"));
+
+        var mine = el("input", "opl-input");
+        mine.type = "email";
+        mine.value = siteEmail();
+        mine.placeholder = "you@example.com";
+        body.appendChild(field("Your email address", mine));
+        if (mine.value) {
+          body.appendChild(el("p", "opl-note",
+            "Filled in from the contact address on the site. Change it if that is not the one you want to sign in with."));
+        }
+
+        var now = el("input", "opl-input");
+        now.type = "password";
+        now.autocomplete = "current-password";
+        now.placeholder = "The password you use now";
+        body.appendChild(field("Your password, to be sure it is you", now));
+        body.appendChild(el("p", "opl-note",
+          "Your password does not change. It is the same one, with your address in front of it."));
+
+        var go = el("button", "opl-btn primary", "Attach my address");
+        go.style.width = "100%";
+        go.onclick = function () {
+          go.disabled = true;
+          go.textContent = "Attaching…";
+          post({ action: "attachEmail", email: mine.value.trim(), password: now.value })
+            .then(function (d) {
+              /* The key her token was signed with has just changed. The
+                 new one comes back with the answer, so she is not thrown
+                 out of the session she is standing in. */
+              holdToken(d);
+              toast("Done. From now on, sign in with " + d.who + " and the same password.");
+              openEditors();
+            })
+            .catch(function (err) {
+              toast(err.message, true);
+              go.disabled = false;
+              go.textContent = "Attach my address";
+            });
+        };
+        body.appendChild(go);
+        return;
+      }
+
+      /* ---- the list ---- */
+      body.appendChild(el("p", "opl-note",
+        "You are signed in as " + esc(data.me || "the owner") + "."));
+
+      body.appendChild(el("p", "opl-h", "People who can edit"));
+      var list = el("ul", "opl-list");
+      (data.people || []).forEach(function (p) {
+        var row = el("li");
+        var when = p.pending
+          ? "invited, has not signed in yet"
+          : (p.lastIn ? "last in " + new Date(p.lastIn).toLocaleDateString() : "has not signed in yet");
+        row.appendChild(el("div", null,
+          "<b>" + esc(p.email) + "</b><small>" + (p.role === "owner" ? "owner &middot; " : "") + esc(when) + "</small>"));
+
+        if (p.role !== "owner" && p.email !== data.me) {
+          var out = el("button", "opl-btn danger", "Remove");
+          out.onclick = function () {
+            out.disabled = true;
+            post({ action: "removeEditor", email: p.email })
+              .then(function () { toast("Removed. They are signed out everywhere."); openEditors(); })
+              .catch(function (err) { toast(err.message, true); out.disabled = false; });
+          };
+          row.appendChild(out);
+        }
+        list.appendChild(row);
+      });
+      body.appendChild(list);
+
+      /* ---- letting somebody in ---- */
+      body.appendChild(el("hr", "opl-hr"));
+      body.appendChild(el("p", "opl-h", "Add an editor"));
+
+      var theirs = el("input", "opl-input");
+      theirs.type = "email";
+      theirs.placeholder = "them@example.com";
+      body.appendChild(field("Their email address", theirs));
+
+      var told = el("p", "opl-note");
+      told.style.display = "none";
+
+      var invite = el("button", "opl-btn primary", "Send an invitation");
+      invite.style.width = "100%";
+      invite.onclick = function () {
+        invite.disabled = true;
+        invite.textContent = "Sending…";
+        post({ action: "addEditor", email: theirs.value.trim() })
+          .then(function (d) {
+            /* Shown as well as sent. Somebody standing beside her can be
+               let in without waiting on mail, and a site whose mail is not
+               configured is not a site that cannot add anybody. */
+            told.style.display = "";
+            told.innerHTML = (d.sent
+              ? "Sent to <b>" + esc(d.who) + "</b>. "
+              : "Mail could not be sent from here, so read them this yourself. ") +
+              "Their code is <b>" + esc(d.code) + "</b>. They sign in with their address and that code, " +
+              "and choose a password straight afterwards. It works once, within seven days.";
+            theirs.value = "";
+            invite.disabled = false;
+            invite.textContent = "Send an invitation";
+            post({ action: "editors" }).then(function (fresh) {
+              /* Redrawn so the new name is in the list, with the code kept
+                 on the screen where she can still read it. */
+              var keep = told.innerHTML;
+              drawEditors(fresh);
+              var slot = document.querySelector("#opl-sheet .opl-ask-say");
+              if (slot) { slot.style.display = ""; slot.innerHTML = keep; }
+            }).catch(function () { });
+          })
+          .catch(function (err) {
+            toast(err.message, true);
+            invite.disabled = false;
+            invite.textContent = "Send an invitation";
+          });
+      };
+      body.appendChild(invite);
+      told.className = "opl-note opl-ask-say";
+      body.appendChild(told);
+
+      /* ---- her own password ---- */
+      body.appendChild(el("hr", "opl-hr"));
+      body.appendChild(el("p", "opl-h", "Change my password"));
+
+      var was = el("input", "opl-input");
+      was.type = "password";
+      was.autocomplete = "current-password";
+      was.placeholder = "The one you use now";
+      body.appendChild(field("Current password", was));
+
+      var next = el("input", "opl-input");
+      next.type = "password";
+      next.autocomplete = "new-password";
+      next.placeholder = "At least eight characters";
+      body.appendChild(field("New password", next));
+
+      var swap = el("button", "opl-btn primary", "Change it");
+      swap.style.width = "100%";
+      swap.onclick = function () {
+        swap.disabled = true;
+        swap.textContent = "Changing…";
+        post({ action: "setPassword", current: was.value, password: next.value })
+          .then(function (d) {
+            holdToken({ token: d.token, expires: d.expires, who: data.me });
+            was.value = next.value = "";
+            toast("Changed. Every other session signed in as you has ended.");
+            swap.disabled = false;
+            swap.textContent = "Change it";
+          })
+          .catch(function (err) {
+            toast(err.message, true);
+            swap.disabled = false;
+            swap.textContent = "Change it";
+          });
+      };
+      body.appendChild(swap);
+
+      body.appendChild(el("p", "opl-note",
+        "Forgotten it entirely? Sign out, then press “I have forgotten my password” on the box. " +
+        "If that fails, " + esc(data.support || "support@wopara.com") + " can let you back in."));
+    }, []);
+  }
+
   /* ---- saved versions ---- */
 
   function loadState() {
@@ -3017,6 +3214,7 @@
       ["Popups", openPopups],
       ["Check the site", openChecks],
       ["What I've changed", openChanges],
+      ["Who can edit this site", openEditors],
       ["Throw away what is not published", dropDraft],
       ["Saved versions", function () { loadState().then(openSaves).catch(function (e) { toast(e.message, true); }); }],
       ["What it has cost", function () { loadState().then(openLedger).catch(function (e) { toast(e.message, true); }); }]
@@ -3301,6 +3499,52 @@
       "</svg>";
   }
 
+  /* An address the site already publishes about itself, used to fill in
+     the box rather than to decide anything. Where a reset is actually
+     posted is settled on the server, because a destination a browser can
+     choose is a way to have somebody else's reset posted to yourself. */
+  function siteEmail() {
+    var links = document.querySelectorAll('a[href^="mailto:"]');
+    for (var i = 0; i < links.length; i++) {
+      var at = links[i].getAttribute("href").slice(7).split("?")[0].trim();
+      if (at && at.indexOf("@") > 0) return at;
+    }
+    return "";
+  }
+
+  /* Like post(), but before there is a token: signing in, and the two
+     steps of having forgotten. It still has to say which site it is
+     speaking for, because one hosted function answers for many. */
+  function anon(payload) {
+    return fetch(ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(Object.assign({ site: SITE }, payload))
+    }).then(function (r) {
+      return r.json().then(function (d) {
+        if (!r.ok) throw new Error(d.error || "That did not work.");
+        return d;
+      });
+    });
+  }
+
+  function holdToken(d) {
+    token = d.token;
+    try {
+      localStorage.setItem(TOKEN_KEY, JSON.stringify({
+        token: token, expires: d.expires, who: d.who || null
+      }));
+      if (d.who) localStorage.setItem(TOKEN_KEY + ":who", d.who);
+    } catch (e) { }
+  }
+
+  /* The box, which is four boxes.
+
+     Signing in, having forgotten, typing the code that came back, and
+     choosing a password for the first time. They share one card because
+     they are one errand: getting in. Which of them opens depends on what
+     the site is set up to ask for, which is fetched before anything is
+     typed rather than discovered by being refused. */
   function gate() {
     if (document.getElementById("opl-gate")) return;
 
@@ -3314,13 +3558,9 @@
       '  <img src="' + esc(BRAND.logo) + '" alt="Wopara" width="44" height="44">' +
       '  <div><b>Wopara ' + esc(BRAND.name) + "</b><span>Edit this site, from inside it</span></div>" +
       "</div>" +
-      '<p class="opl-note">Everything you change is yours to undo, and nobody sees it until you press Publish.</p>' +
-      '<input class="opl-input" type="password" autocomplete="current-password" placeholder="Password" aria-label="Password">' +
+      '<div data-opl-screen></div>' +
       '<p class="opl-err"></p>' +
-      '<div style="display:flex;gap:8px;margin-top:16px">' +
-      '<button class="opl-btn primary" type="submit" style="flex:1">Start editing</button>' +
-      '<button class="opl-btn" type="button" data-opl-cancel>Cancel</button>' +
-      "</div>" +
+      '<div class="op-gate-acts"></div>' +
       /* Whoever is looking at this box on somebody else's site is, by
          definition, somebody who has just seen what Opaline does. This is
          the only place that is true, so it is the only place worth
@@ -3334,10 +3574,14 @@
     requestAnimationFrame(function () { host.classList.add("open"); });
 
     var form = host.querySelector("form");
-    var input = host.querySelector("input");
+    var slot = host.querySelector("[data-opl-screen]");
+    var acts = host.querySelector(".op-gate-acts");
     var err = host.querySelector(".opl-err");
-    var submit = host.querySelector('[type="submit"]');
-    setTimeout(function () { input.focus(); }, 120);
+
+    var mode = "password";
+    var support = "support@wopara.com";
+    var lastEmail = "";
+    try { lastEmail = localStorage.getItem(TOKEN_KEY + ":who") || ""; } catch (e) { }
 
     function away() {
       document.removeEventListener("keydown", escape);
@@ -3348,37 +3592,203 @@
        dark around it, and the key everyone reaches for. */
     function escape(e) { if (e.key === "Escape") away(); }
     document.addEventListener("keydown", escape);
-    host.querySelector("[data-opl-cancel]").onclick = away;
     host.addEventListener("click", function (e) { if (e.target === host) away(); });
 
-    form.onsubmit = function (e) {
-      e.preventDefault();
-      err.className = "opl-err";
-      submit.disabled = true;
-      submit.textContent = "Checking…";
+    function complain(message) {
+      err.textContent = message;
+      err.className = "opl-err on";
+    }
 
-      fetch(ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "login", password: input.value, site: SITE })
+    /* One place builds the card, so no screen can forget the way out or
+       leave the last screen's buttons behind it. */
+    function draw(screen, note) {
+      err.className = "opl-err";
+      slot.innerHTML = "";
+      acts.innerHTML = "";
+
+      var fields = [];
+      function box(type, placeholder, value, complete) {
+        var input = el("input", "opl-input");
+        input.type = type;
+        input.placeholder = placeholder;
+        input.setAttribute("aria-label", placeholder);
+        if (complete) input.autocomplete = complete;
+        if (value) input.value = value;
+        slot.appendChild(input);
+        fields.push(input);
+        return input;
+      }
+      function say(text, cls) {
+        slot.appendChild(el("p", cls || "opl-note", esc(text)));
+      }
+      function act(label, kind, fn) {
+        var b = el("button", "opl-btn" + (kind === "primary" ? " primary" : ""), label);
+        b.type = kind === "primary" ? "submit" : "button";
+        if (kind !== "primary") b.onclick = fn;
+        acts.appendChild(b);
+        return b;
+      }
+      function quiet(label, fn) {
+        var a = el("button", "op-gate-quiet", label);
+        a.type = "button";
+        a.onclick = fn;
+        slot.appendChild(a);
+      }
+
+      if (note) say(note, "opl-note on");
+
+      if (screen === "in") {
+        say("Everything you change is yours to undo, and nobody sees it until you press Publish.");
+        var email = mode === "email" ? box("email", "Your email address", lastEmail, "username") : null;
+        var pass = box("password", "Password", "", "current-password");
+        quiet("I have forgotten my password", function () { draw("forgot"); });
+
+        act("Start editing", "primary");
+        act("Cancel", null, away);
+
+        form.onsubmit = function (e) {
+          e.preventDefault();
+          err.className = "opl-err";
+          var go = acts.querySelector(".primary");
+          go.disabled = true;
+          go.textContent = "Checking…";
+          lastEmail = email ? email.value.trim() : "";
+          anon({ action: "login", email: lastEmail, password: pass.value })
+            .then(function (d) {
+              holdToken(d);
+              /* Arrived on an invitation, which is not a password. They
+                 choose one now rather than being let in on a code that
+                 was mailed in the clear. */
+              if (d.mustChoose) { draw("choose"); return; }
+              away();
+              boot();
+            })
+            .catch(function (e2) {
+              complain(e2.message);
+              pass.value = "";
+              pass.focus();
+              go.disabled = false;
+              go.textContent = "Start editing";
+            });
+        };
+      }
+
+      if (screen === "forgot") {
+        var ask = null;
+        if (mode === "email") {
+          say("Type the address you sign in with. If it can edit this site, a code is on its way to it.");
+          ask = box("email", "Your email address", lastEmail, "username");
+        } else {
+          say("This site still signs in with one password and no address, so the code goes to the " +
+            "contact address on the site itself. Nobody else can ask for it.");
+        }
+
+        act("Send me a code", "primary");
+        act("Back", null, function () { draw("in"); });
+
+        form.onsubmit = function (e) {
+          e.preventDefault();
+          err.className = "opl-err";
+          var go = acts.querySelector(".primary");
+          go.disabled = true;
+          go.textContent = "Sending…";
+          lastEmail = ask ? ask.value.trim() : "";
+          anon({ action: "resetStart", email: lastEmail })
+            .then(function (d) {
+              support = d.support || support;
+              /* Nowhere to send it, which is the one case worth being
+                 blunt about: no amount of waiting will help. */
+              if (d.none) { draw("stuck"); return; }
+              if (!d.sent && d.to) { draw("code", "The code could not be sent just now. Write to " + support + " if it does not arrive."); return; }
+              draw("code", d.to ? "Sent to " + d.to + "." : "If that address can edit this site, a code is on its way.");
+            })
+            .catch(function (e2) {
+              complain(e2.message);
+              go.disabled = false;
+              go.textContent = "Send me a code";
+            });
+        };
+      }
+
+      if (screen === "code") {
+        say("The code works once, for the next three quarters of an hour. Choose the password you would like from now on.");
+        var code = box("text", "The code from the email", "", "one-time-code");
+        var made = box("password", "Your new password", "", "new-password");
+
+        act("Set it and start editing", "primary");
+        act("Back", null, function () { draw("forgot"); });
+
+        form.onsubmit = function (e) {
+          e.preventDefault();
+          err.className = "opl-err";
+          var go = acts.querySelector(".primary");
+          go.disabled = true;
+          go.textContent = "Setting…";
+          anon({ action: "resetFinish", email: lastEmail, code: code.value, password: made.value })
+            .then(function (d) {
+              holdToken(d);
+              away();
+              boot();
+            })
+            .catch(function (e2) {
+              complain(e2.message);
+              go.disabled = false;
+              go.textContent = "Set it and start editing";
+            });
+        };
+      }
+
+      if (screen === "choose") {
+        say("You are in. Choose a password of your own, and the code you were sent stops working.");
+        var mine = box("password", "Your new password", "", "new-password");
+
+        act("Save it and start editing", "primary");
+
+        form.onsubmit = function (e) {
+          e.preventDefault();
+          err.className = "opl-err";
+          var go = acts.querySelector(".primary");
+          go.disabled = true;
+          go.textContent = "Saving…";
+          post({ action: "setPassword", password: mine.value })
+            .then(function (d) {
+              holdToken({ token: d.token, expires: d.expires, who: lastEmail });
+              away();
+              boot();
+            })
+            .catch(function (e2) {
+              complain(e2.message);
+              go.disabled = false;
+              go.textContent = "Save it and start editing";
+            });
+        };
+      }
+
+      if (screen === "stuck") {
+        say("There is no contact address on this site for a code to go to, so this is as far as " +
+          "the box can take you. Write to " + support + " and Wopara will let you back in.");
+        act("Close", null, away);
+        form.onsubmit = function (e) { e.preventDefault(); };
+      }
+
+      if (fields.length) setTimeout(function () { fields[0].focus(); }, 120);
+    }
+
+    draw("in");
+
+    /* Which box to show is the site's answer, not a guess. Asked for
+       quietly behind the box that is already up, so nothing waits on it:
+       a slow answer costs the reader nothing, and the wrong box for half a
+       second is better than an empty card. */
+    anon({ action: "mode" })
+      .then(function (d) {
+        support = d.support || support;
+        if (d.mode === "email" && mode !== "email") {
+          mode = "email";
+          draw("in");
+        }
       })
-        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
-        .then(function (out) {
-          if (!out.ok) throw new Error(out.d.error || "That did not work.");
-          token = out.d.token;
-          try { localStorage.setItem(TOKEN_KEY, JSON.stringify({ token: token, expires: out.d.expires })); } catch (e) { }
-          away();
-          boot();
-        })
-        .catch(function (e2) {
-          err.textContent = e2.message;
-          err.className = "opl-err on";
-          input.value = "";
-          input.focus();
-          submit.disabled = false;
-          submit.textContent = "Sign in";
-        });
-    };
+      .catch(function () { });
   }
 
   function storedToken() {

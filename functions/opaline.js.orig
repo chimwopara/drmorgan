@@ -39,17 +39,6 @@ const admin = require("firebase-admin");
 const DEEPSEEK_API_KEY = defineSecret("DEEPSEEK_API_KEY");
 const EDITOR_PASSWORD = defineSecret("EDITOR_PASSWORD");
 
-/* Wopara's own service key, used for one thing: posting an invitation or a
-   password code through Wopara's mail service. Deploying requires every
-   declared secret to hold something, so a self-hosted site that is not
-   buying mail from us still has to put a value here — and with a
-   placeholder in it, invitations are shown on screen to be read out and a
-   forgotten password is answered with support@wopara.com, which is a
-   working install rather than a broken one.
-
-     firebase functions:secrets:set WOPARA_KEY                          */
-const WOPARA_KEY = defineSecret("WOPARA_KEY");
-
 /* Self-hosted: the domains this one site is served from, and null below.
    Hosted: leave ORIGINS empty — each site brings its own. */
 const ORIGINS = [
@@ -59,14 +48,6 @@ const ORIGINS = [
 
 /* Set to "hosted" to run one function for many sites. */
 const MODE = "self";
-
-/* Self-hosted: where a password code goes while the site is still on one
-   nameless password. It is the site's own contact address, and it is set
-   here rather than read off the page because a destination a browser can
-   choose is a way to have somebody else's reset posted to yourself. Leave
-   it empty and a forgotten password is answered with support@wopara.com.
-   Hosted, the address registered in Port is used instead. */
-const CONTACT_EMAIL = "drmorgan@drmorgan.ai";
 
 const MEDIA_BUCKET = "drmorgan-site-media";
 
@@ -188,211 +169,35 @@ function sameSecret(a, b) {
   return x.length === y.length && crypto.timingSafeEqual(x, y);
 }
 
-/* =====================================================================
-   Who may edit
-   =====================================================================
-   A site starts with one password and no names attached to it, which is
-   the right shape for one person editing their own site: there is nothing
-   to administer and nothing to forget but the password.
-
-   The moment a second person is wanted, that shape stops working. Two
-   people sharing one password cannot be told apart, cannot be removed one
-   at a time, and cannot have a password reset without the other losing
-   theirs. So adding an editor first asks the owner to put their own name
-   to the door: an address attached to their own sign-in. From then on the
-   box asks for an address and a password rather than a password alone,
-   every session says whose it is, and removing somebody ends their
-   sessions and nobody else's.
-
-   Passwords chosen here are salted and run through scrypt, one salt each,
-   so two people who pick the same word do not leave the same row. The
-   founding password is not in this database at all: self-hosted it is in
-   Secret Manager, hosted it is the hash the customer chose in Port, and
-   only a hash is ever compared either way.
-   ===================================================================== */
-
-const INVITE_DAYS = 7;
-const RESET_MINUTES = 45;
-const SUPPORT_EMAIL = "support@wopara.com";
-
-const AUTH_REF = (site) => db().collection("sites").doc(site).collection("state").doc("auth");
-const EDITORS_REF = (site) => db().collection("sites").doc(site).collection("editors");
-
-function emailKey(v) {
-  return String(v || "").trim().toLowerCase().slice(0, 254);
+/* A token is its own proof: an expiry, signed with a key derived from the
+   password. Nothing is stored, so nothing can be read, and changing the
+   password changes the key and so retires every token at once. */
+/* A token is signed with a key derived from the site AND its password, so
+   a token is useless against any other site, and changing a password
+   retires every token issued under the old one. */
+function signingKey(site) {
+  const held = passwordHash(site);
+  if (!held) return null;
+  return crypto.createHmac("sha256", "opaline-v1:" + site.id).update(held).digest();
 }
 
-function emailLooksReal(v) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
-}
-
-/* Shown back to somebody who has just asked for a reset, so they can tell
-   whether it went where they expected without the reply naming an address
-   to anybody who guessed at it. */
-function maskEmail(v) {
-  const at = String(v || "").indexOf("@");
-  if (at < 1) return "";
-  return v.slice(0, 1) + "…" + v.slice(at - 1);
-}
-
-/* Where a reset goes while a site is still on one nameless password. Held
-   on our side rather than read off the page, because a destination the
-   browser can choose is a way to have somebody else's reset posted to
-   yourself. Self-hosted, set CONTACT_EMAIL below; hosted, it is the
-   address the customer registered in Port. */
-function contactEmail(site) {
-  if (MODE === "hosted") return emailKey((site.doc && site.doc.email) || "");
-  return emailKey(CONTACT_EMAIL);
-}
-
-async function authDoc(site) {
-  const snap = await AUTH_REF(site.id).get();
-  return snap.exists ? (snap.data() || {}) : {};
-}
-
-async function authMode(site) {
-  return (await authDoc(site)).mode === "email" ? "email" : "password";
-}
-
-function hashPassword(pw) {
-  const salt = crypto.randomBytes(16).toString("hex");
-  return { salt: salt, hash: crypto.scryptSync(String(pw), salt, 64).toString("hex"), at: Date.now() };
-}
-
-function passwordMatches(rec, pw) {
-  if (!rec || !rec.salt || !rec.hash) return false;
-  return sameSecret(crypto.scryptSync(String(pw), rec.salt, 64).toString("hex"), rec.hash);
-}
-
-function passwordSound(pw) {
-  return typeof pw === "string" && pw.length >= 8 && pw.length <= 200;
-}
-
-/* Codes get read down a phone line, so nothing in here can be mistaken
-   for anything else in here: no I, L, O, zero or one. */
-const CODE_ALPHA = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-
-function newCode() {
-  const b = crypto.randomBytes(8);
-  let s = "";
-  for (let i = 0; i < 8; i++) s += CODE_ALPHA[b[i] % CODE_ALPHA.length];
-  return s.slice(0, 4) + "-" + s.slice(4);
-}
-
-/* Never stored as it was sent. A code sitting in the database in the clear
-   is a password in the database in the clear. */
-function codeKey(c) {
-  return sha256(String(c || "").toUpperCase().replace(/[^A-Z0-9]/g, ""));
-}
-
-function whoTag(email) {
-  return email ? Buffer.from(email, "utf8").toString("base64url") : "-";
-}
-
-function whoEmail(tag) {
-  if (!tag || tag === "-") return null;
-  try { return Buffer.from(tag, "base64url").toString("utf8"); } catch (e) { return null; }
-}
-
-/* A token is its own proof: an expiry and a name, signed with a key
-   derived from the site AND that person's own password. So a token is
-   useless against another site, useless once that person's password
-   changes, and useless the moment their record is removed. Nothing is
-   stored to check one against, so nothing about a session can be read out
-   of the database either. */
-async function editorKey(site, tag) {
-  if (!tag || tag === "-") {
-    const held = passwordHash(site);
-    return held ? crypto.createHmac("sha256", "opaline-v1:" + site.id).update(held).digest() : null;
-  }
-  const who = whoEmail(tag);
-  if (!who) return null;
-  const snap = await EDITORS_REF(site.id).doc(who).get();
-  if (!snap.exists) return null;
-  const d = snap.data() || {};
-  /* Somebody who has not chosen a password yet is signed in against the
-     invitation, so their one session before choosing one can still be
-     ended by withdrawing it. */
-  const seed = d.hash || (d.invite && d.invite.hash) || null;
-  return seed ? crypto.createHmac("sha256", "opaline-v1:" + site.id + ":" + who).update(seed).digest() : null;
-}
-
-async function mintToken(site, email) {
-  const tag = whoTag(email);
-  const key = await editorKey(site, tag);
+function mintToken(site) {
+  const key = signingKey(site);
   if (!key) return null;
   const expires = Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000;
-  const body = expires + "." + tag;
-  const sig = crypto.createHmac("sha256", key).update(body).digest("hex");
-  return { token: body + "." + sig, expires: expires, who: email || null };
+  const sig = crypto.createHmac("sha256", key).update(String(expires)).digest("hex");
+  return { token: expires + "." + sig, expires: expires };
 }
 
-/* Answers with who the token is, or null. Sessions minted before anyone
-   had a name are two parts rather than three and still verify: nobody is
-   signed out by an upgrade. */
-async function tokenWho(token, site) {
-  if (typeof token !== "string") return null;
-  const bits = token.split(".");
-  if (bits.length < 2 || bits.length > 3) return null;
-
-  const expires = Number(bits[0]);
-  if (!isFinite(expires) || expires < Date.now()) return null;
-
-  const tag = bits.length === 3 ? bits[1] : "-";
-  const key = await editorKey(site, tag);
-  if (!key) return null;
-
-  const body = bits.length === 3 ? bits[0] + "." + bits[1] : bits[0];
-  if (!sameSecret(crypto.createHmac("sha256", key).update(body).digest("hex"), bits[bits.length - 1])) return null;
-  return { tag: tag, email: whoEmail(tag) };
-}
-
-/* One place decides where a reset may be posted, and a browser is never
-   consulted about it. */
-async function resetTarget(site, mode, asked) {
-  if (mode !== "email") {
-    const to = contactEmail(site);
-    return to ? { to: to, editor: null } : null;
-  }
-  const who = emailKey(asked);
-  if (!emailLooksReal(who)) return null;
-  const snap = await EDITORS_REF(site.id).doc(who).get();
-  return snap.exists ? { to: who, editor: who } : null;
-}
-
-/* Mail goes out through Wopara's own service, which is where the mail
-   credentials live. This function holds none and should hold none: one
-   that can edit a website is a small thing to lose, and one that can send
-   as anybody is not.
-
-   Self-hosted with WOPARA_KEY unset, this says so rather than pretending,
-   and the editor tells whoever is stuck to write to support instead. That
-   is a working install, not a broken one: an invitation code is shown on
-   screen as well as sent. */
-const WOPARA_BASE = "https://wopara-token-service-296282827554.us-central1.run.app";
-
-async function mailOut(site, to, subject, lines) {
-  const key = WOPARA_KEY.value();
-  if (!key || key.length < 12) return false;
-  try {
-    const r = await fetch(WOPARA_BASE + "/opaline/mail", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-API-KEY": key },
-      body: JSON.stringify({
-        to: to,
-        subject: subject,
-        lines: lines,
-        site: (site.doc && site.doc.name) || site.id,
-        replyTo: SUPPORT_EMAIL
-      })
-    });
-    if (!r.ok) { logger.error("opaline mail refused", { status: r.status }); return false; }
-    const d = await r.json().catch(() => ({}));
-    return !!d.sent;
-  } catch (err) {
-    logger.error("opaline mail failed", { message: err.message });
-    return false;
-  }
+function tokenValid(token, site) {
+  const key = signingKey(site);
+  if (!key || typeof token !== "string") return false;
+  const dot = token.indexOf(".");
+  if (dot < 1) return false;
+  const expires = Number(token.slice(0, dot));
+  if (!isFinite(expires) || expires < Date.now()) return false;
+  const sig = crypto.createHmac("sha256", key).update(String(expires)).digest("hex");
+  return sameSecret(sig, token.slice(dot + 1));
 }
 
 function db() {
@@ -779,7 +584,7 @@ async function raiseTopUp(site, state) {
 
 exports.opaline = onRequest(
   {
-    secrets: [EDITOR_PASSWORD, DEEPSEEK_API_KEY, WOPARA_KEY],
+    secrets: [EDITOR_PASSWORD, DEEPSEEK_API_KEY],
     region: "us-central1",
     cors: false,
     maxInstances: 20,
@@ -835,17 +640,6 @@ exports.opaline = onRequest(
     const ip = req.headers["x-forwarded-for"] || req.ip || "unknown";
 
     try {
-      /* ---- what the box should ask for ----
-
-         Public on purpose and says nothing worth having: whether this site
-         wants an address as well as a password. The box has to know before
-         anybody has typed anything, and an attacker learns only what one
-         look at the form would have told them anyway. */
-      if (action === "mode") {
-        res.status(200).json({ ok: true, mode: await authMode(site), support: SUPPORT_EMAIL });
-        return;
-      }
-
       if (action === "login") {
         /* Slow enough that guessing is not worth anyone's afternoon. */
         if (tooOften("in:" + site.id + ":" + ip, 8, 10 * 60 * 1000)) {
@@ -853,349 +647,24 @@ exports.opaline = onRequest(
           return;
         }
         const want = passwordHash(site);
-        const mode = await authMode(site);
-        const said = String(body.password || "");
-
-        if (mode !== "email") {
-          if (!want) {
-            logger.error("login attempted for a site with no password set", { site: site.id });
-            res.status(503).json({ error: "Editing is not switched on for this site yet." });
-            return;
-          }
-          if (!sameSecret(sha256(said), want)) {
-            logger.warn("login refused", { site: site.id, ip: ip });
-            res.status(401).json({ error: "That password is not right." });
-            return;
-          }
-          const t = await mintToken(site, null);
-          res.status(200).json({ ok: true, token: t.token, expires: t.expires, mode: mode });
+        if (!want) {
+          logger.error("login attempted for a site with no password set", { site: site.id });
+          res.status(503).json({ error: "Editing is not switched on for this site yet." });
           return;
         }
-
-        /* Names are attached, so the address is half the answer. The reply
-           is the same whether the address is unknown or the password is
-           wrong, because a login box that distinguishes them is a way to
-           find out who can edit a site. */
-        const who = emailKey(body.email);
-        const wrong = { error: "That address and password do not go together." };
-        if (!emailLooksReal(who)) { res.status(401).json(wrong); return; }
-
-        const ref = EDITORS_REF(site.id).doc(who);
-        const snap = await ref.get();
-        if (!snap.exists) { logger.warn("login refused", { site: site.id, ip: ip }); res.status(401).json(wrong); return; }
-        const d = snap.data() || {};
-
-        let ok = passwordMatches(d, said);
-        let choosing = false;
-
-        /* An invitation is a password that works once and then insists on
-           being replaced. */
-        if (!ok && d.invite && d.invite.expires > Date.now() &&
-          sameSecret(codeKey(said), d.invite.hash)) {
-          ok = true;
-          choosing = true;
-        }
-
-        /* The owner can always get in with the password the site was set
-           up on, provided they give their own address with it. Not a
-           second door: the same one door, still answering to whoever holds
-           the founding password. */
-        if (!ok && d.role === "owner" && want && sameSecret(sha256(said), want)) ok = true;
-
-        if (!ok) { logger.warn("login refused", { site: site.id, ip: ip }); res.status(401).json(wrong); return; }
-
-        const t = await mintToken(site, who);
-        if (!t) { res.status(503).json({ error: "Editing is not switched on for this site yet." }); return; }
-        await ref.update({ lastIn: Date.now() }).catch(() => { });
-        res.status(200).json({
-          ok: true, token: t.token, expires: t.expires, mode: mode,
-          who: who, role: d.role || "editor",
-          /* Signed in on an invitation, which is not a password. */
-          mustChoose: choosing
-        });
-        return;
-      }
-
-      /* ---- forgetting it ----
-
-         Open, because somebody who has forgotten their password cannot
-         prove anything yet. Two things keep it honest: where the code goes
-         is decided here and never by the caller, and the reply is the same
-         whether or not there was anywhere to send it. Otherwise this box
-         becomes a way to ask which addresses can edit a site. */
-      if (action === "resetStart") {
-        if (tooOften("rs:" + site.id + ":" + ip, 6, 30 * 60 * 1000)) {
-          res.status(429).json({ error: "That has been asked for a few times already. Please give it half an hour." });
+        if (!sameSecret(sha256(String(body.password || "")), want)) {
+          logger.warn("login refused", { site: site.id, ip: ip });
+          res.status(401).json({ error: "That password is not right." });
           return;
         }
-        const mode = await authMode(site);
-        const target = await resetTarget(site, mode, body.email);
-
-        if (!target) {
-          /* On a site with names, saying nothing is the point. On a site
-             with no contact address there is genuinely nowhere to send it,
-             and saying so is the only useful thing left. */
-          if (mode !== "email") {
-            res.status(200).json({ ok: true, sent: false, none: true, support: SUPPORT_EMAIL, mode: mode });
-            return;
-          }
-          res.status(200).json({ ok: true, sent: true, mode: mode, support: SUPPORT_EMAIL });
-          return;
-        }
-
-        const code = newCode();
-        const until = Date.now() + RESET_MINUTES * 60 * 1000;
-        const label = (site.doc && site.doc.name) || site.id;
-
-        if (target.editor) {
-          await EDITORS_REF(site.id).doc(target.editor).update({ reset: { hash: codeKey(code), expires: until } });
-        } else {
-          await AUTH_REF(site.id).set({ reset: { hash: codeKey(code), expires: until } }, { merge: true });
-        }
-
-        const sent = await mailOut(site, target.to, "Your Opaline code for " + label, [
-          "Somebody asked to set a new editing password for " + label + ".",
-          "",
-          "The code is " + code,
-          "",
-          "It works once, for the next " + RESET_MINUTES + " minutes. If this was not you, " +
-          "nothing has changed and you can ignore this."
-        ]);
-
-        res.status(200).json({
-          ok: true, sent: sent, mode: mode, to: maskEmail(target.to), support: SUPPORT_EMAIL
-        });
-        return;
-      }
-
-      if (action === "resetFinish") {
-        if (tooOften("rf:" + site.id + ":" + ip, 10, 30 * 60 * 1000)) {
-          res.status(429).json({ error: "Too many tries. Please wait half an hour." });
-          return;
-        }
-        const mode = await authMode(site);
-        const fresh = String(body.password || "");
-        if (!passwordSound(fresh)) {
-          res.status(400).json({ error: "Please choose a password of at least eight characters." });
-          return;
-        }
-
-        const bad = { error: "That code is not right, or it has expired." };
-
-        if (mode === "email") {
-          const who = emailKey(body.email);
-          if (!emailLooksReal(who)) { res.status(400).json(bad); return; }
-          const ref = EDITORS_REF(site.id).doc(who);
-          const snap = await ref.get();
-          if (!snap.exists) { res.status(400).json(bad); return; }
-          const d = snap.data() || {};
-          if (!d.reset || d.reset.expires < Date.now() || !sameSecret(codeKey(body.code), d.reset.hash)) {
-            res.status(400).json(bad); return;
-          }
-          /* Used once and gone, along with any invitation it stood in for. */
-          await ref.update(Object.assign(hashPassword(fresh), {
-            reset: admin.firestore.FieldValue.delete(),
-            invite: admin.firestore.FieldValue.delete()
-          }));
-          const t = await mintToken(site, who);
-          res.status(200).json({ ok: true, token: t.token, expires: t.expires, who: who, mode: mode });
-          return;
-        }
-
-        /* Still one nameless password. Resetting it cannot rewrite a
-           secret from in here, so what it does instead is attach the
-           contact address to the door and give that address the new
-           password, which is where the site was going anyway. */
-        const a = await authDoc(site);
-        if (!a.reset || a.reset.expires < Date.now() || !sameSecret(codeKey(body.code), a.reset.hash)) {
-          res.status(400).json(bad); return;
-        }
-        const who = contactEmail(site);
-        if (!emailLooksReal(who)) { res.status(400).json(bad); return; }
-        await EDITORS_REF(site.id).doc(who).set(Object.assign(hashPassword(fresh), {
-          email: who, role: "owner", addedAt: Date.now(), addedBy: "reset"
-        }), { merge: true });
-        await AUTH_REF(site.id).set({
-          mode: "email", updatedAt: Date.now(), reset: admin.firestore.FieldValue.delete()
-        }, { merge: true });
-        const t = await mintToken(site, who);
-        res.status(200).json({ ok: true, token: t.token, expires: t.expires, who: who, mode: "email" });
+        const t = mintToken(site);
+        res.status(200).json({ ok: true, token: t.token, expires: t.expires });
         return;
       }
 
       /* Everything past this point changes the site. */
-      const me = await tokenWho(body.token, site);
-      if (!me) {
+      if (!tokenValid(body.token, site)) {
         res.status(401).json({ error: "Your editing session has ended. Please sign in again." });
-        return;
-      }
-
-      /* ---- who can get in, listed ---- */
-      if (action === "editors") {
-        const snap = await EDITORS_REF(site.id).orderBy("addedAt", "asc").limit(50).get();
-        const people = [];
-        snap.forEach((d) => {
-          const v = d.data() || {};
-          people.push({
-            email: v.email || d.id,
-            role: v.role || "editor",
-            /* Invited and not yet arrived: worth showing, because an
-               invitation nobody used looks exactly like an editor who
-               cannot get in. */
-            pending: !v.hash,
-            addedAt: v.addedAt || 0,
-            lastIn: v.lastIn || 0
-          });
-        });
-        const to = contactEmail(site);
-        res.status(200).json({
-          ok: true, mode: await authMode(site), me: me.email, people: people,
-          contact: to ? maskEmail(to) : "", support: SUPPORT_EMAIL
-        });
-        return;
-      }
-
-      /* ---- putting their own name to the door ----
-
-         The step before a second editor is possible. The current password
-         is asked for again, and not as ceremony: this is the request that
-         decides who owns the site from now on, and the one thing a
-         borrowed session cannot produce is the password it was opened
-         with. */
-      if (action === "attachEmail") {
-        if (await authMode(site) === "email") {
-          res.status(409).json({ error: "This site already signs in with an address." });
-          return;
-        }
-        const want = passwordHash(site);
-        if (!want || !sameSecret(sha256(String(body.password || "")), want)) {
-          res.status(401).json({ error: "That password is not right." });
-          return;
-        }
-        const who = emailKey(body.email);
-        if (!emailLooksReal(who)) {
-          res.status(400).json({ error: "That does not look like an email address." });
-          return;
-        }
-
-        /* The password does not change here, so nothing they know becomes
-           wrong: the same password, now with an address in front of it.
-           Stored properly this time rather than left as a bare SHA-256,
-           since from here it is theirs rather than the site's. */
-        await EDITORS_REF(site.id).doc(who).set(Object.assign(hashPassword(String(body.password || "")), {
-          email: who, role: "owner", addedAt: Date.now(), addedBy: "self"
-        }), { merge: true });
-        await AUTH_REF(site.id).set({ mode: "email", updatedAt: Date.now() }, { merge: true });
-
-        const t = await mintToken(site, who);
-        res.status(200).json({ ok: true, mode: "email", who: who, token: t.token, expires: t.expires });
-        return;
-      }
-
-      /* ---- a second pair of hands ---- */
-      if (action === "addEditor") {
-        if (await authMode(site) !== "email") {
-          res.status(409).json({ error: "Attach your own address to this site first." });
-          return;
-        }
-        const who = emailKey(body.email);
-        if (!emailLooksReal(who)) {
-          res.status(400).json({ error: "That does not look like an email address." });
-          return;
-        }
-        const already = await EDITORS_REF(site.id).doc(who).get();
-        if (already.exists && (already.data() || {}).hash) {
-          res.status(409).json({ error: "That address can already edit this site." });
-          return;
-        }
-
-        /* The invitation is shown to the owner as well as sent, so an
-           editor standing beside them can be let in without waiting on
-           mail, and a site with no mail configured is not a site that
-           cannot add anybody. */
-        const code = newCode();
-        const label = (site.doc && site.doc.name) || site.id;
-        await EDITORS_REF(site.id).doc(who).set({
-          email: who,
-          role: "editor",
-          addedAt: Date.now(),
-          addedBy: me.email || "owner",
-          invite: { hash: codeKey(code), expires: Date.now() + INVITE_DAYS * 24 * 60 * 60 * 1000 }
-        }, { merge: true });
-
-        const sent = await mailOut(site, who, "You can now edit " + label, [
-          "You have been given editing access to " + label + ".",
-          "",
-          "Go to the site, press “Edit with Wopara Opaline” at the foot of any page,",
-          "and sign in with this address and the code below. It will ask you to",
-          "choose a password of your own straight afterwards.",
-          "",
-          "The code is " + code,
-          "",
-          "It works once, within the next " + INVITE_DAYS + " days."
-        ]);
-
-        res.status(200).json({ ok: true, who: who, code: code, sent: sent, support: SUPPORT_EMAIL });
-        return;
-      }
-
-      if (action === "removeEditor") {
-        const who = emailKey(body.email);
-        const snap = await EDITORS_REF(site.id).doc(who).get();
-        if (!snap.exists) { res.status(404).json({ error: "That address is not on the list." }); return; }
-        const d = snap.data() || {};
-        /* Neither of the two ways to lock a site's owner out of it. */
-        if (d.role === "owner") {
-          res.status(409).json({ error: "The owner of the site cannot be removed from it." });
-          return;
-        }
-        if (who === (me.email || "")) {
-          res.status(409).json({ error: "You cannot remove yourself. Ask another editor to do it." });
-          return;
-        }
-        await EDITORS_REF(site.id).doc(who).delete();
-        /* Their sessions were signed with a key derived from the record
-           that has just gone, so they are already worthless. */
-        res.status(200).json({ ok: true });
-        return;
-      }
-
-      /* ---- changing it, from inside ---- */
-      if (action === "setPassword") {
-        if (!me.email) {
-          res.status(409).json({ error: "Attach your own address to this site first." });
-          return;
-        }
-        const fresh = String(body.password || "");
-        if (!passwordSound(fresh)) {
-          res.status(400).json({ error: "Please choose a password of at least eight characters." });
-          return;
-        }
-        const ref = EDITORS_REF(site.id).doc(me.email);
-        const snap = await ref.get();
-        if (!snap.exists) { res.status(404).json({ error: "That address is not on the list." }); return; }
-        const d = snap.data() || {};
-
-        /* Somebody who arrived on an invitation has no password to be
-           asked for yet. Everybody else does, because a session left open
-           on a borrowed laptop should not be able to change the password
-           that would end it. */
-        if (d.hash) {
-          const want = passwordHash(site);
-          const okNow = passwordMatches(d, String(body.current || "")) ||
-            (d.role === "owner" && want && sameSecret(sha256(String(body.current || "")), want));
-          if (!okNow) { res.status(401).json({ error: "That is not your current password." }); return; }
-        }
-
-        await ref.update(Object.assign(hashPassword(fresh), {
-          invite: admin.firestore.FieldValue.delete(),
-          reset: admin.firestore.FieldValue.delete()
-        }));
-        /* The key their token was signed with has just changed, so the one
-           they are holding is finished. They get a new one rather than a
-           sign-in box. */
-        const t = await mintToken(site, me.email);
-        res.status(200).json({ ok: true, token: t.token, expires: t.expires });
         return;
       }
 
