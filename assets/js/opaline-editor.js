@@ -70,6 +70,25 @@
   var baseline = {};
   var orderBaseline = {};
 
+  /* While she is typing in the panel or dragging one of its sliders, the
+     page has to change under her hand. Laying a version down rebuilds the
+     panel, though, which would take the very box she is typing in out from
+     under her mid-word. So a live edit renders the page and leaves the
+     panel standing; the panel catches up when she lets go. */
+  var holdPanel = false;
+  var liveTag = null;
+  var liveAt = 0;
+
+  /* Looking at the published site rather than at her own copy of it. The
+     page really is rendered from the published document while this is on,
+     which is the only honest way to show a before. */
+  var peeking = false;
+  var heldDoc = null;
+
+  /* Her working copy, kept where she left it. */
+  var draftTimer = null;
+  var draftState = "";     // "" | "keeping" | "kept" | "adrift"
+
   /* ------------------------------------------------------------------
      Small helpers
      ------------------------------------------------------------------ */
@@ -365,6 +384,10 @@
       if (again) select(again, true); else clearSelection();
     }
     refreshBar();
+    /* Every version she arrives at is put somewhere she can get it back
+       from, on this machine or any other. Not while she is looking at the
+       published site, which is not her work and must not overwrite it. */
+    if (booted && !peeking) queueDraft();
   }
 
   function push() {
@@ -372,6 +395,8 @@
        pressing undo once would appear to do nothing at all — the version it
        arrived at being the one already on the screen. Panels can fire the
        same change twice, so this is not a rare case. */
+    if (peeking) return;
+    liveTag = null;
     if (hIndex >= 0 && JSON.stringify(history[hIndex]) === JSON.stringify(doc)) { render(); return; }
 
     history = history.slice(0, hIndex + 1);
@@ -381,10 +406,36 @@
     render();
   }
 
+  /* A version laid down while her hand is still on the control that is
+     making it.
+
+     Two things differ from an ordinary push. The panel is held still, so
+     the slider she is dragging or the box she is typing in survives the
+     render. And a run of these from the same control collapses into a
+     single step, because dragging one slider is one thing to undo, not
+     forty of them.
+
+     The run ends when she moves to another control, or after a second and
+     a half of stillness, whichever comes first. */
+  function pushLive(tag) {
+    if (peeking) return;
+    var now = Date.now();
+    var run = tag && tag === liveTag && (now - liveAt) < 1500 && hIndex > 0;
+
+    holdPanel = true;
+    if (run) { history[hIndex] = copy(doc); render(); }
+    else push();
+    holdPanel = false;
+
+    liveTag = tag;
+    liveAt = now;
+  }
+
   function undo() {
     if (hIndex <= 0) return;
     hIndex--;
     doc = copy(history[hIndex]);
+    liveTag = null;
     render();
     toast("Undone");
   }
@@ -393,11 +444,95 @@
     if (hIndex >= history.length - 1) return;
     hIndex++;
     doc = copy(history[hIndex]);
+    liveTag = null;
     render();
     toast("Redone");
   }
 
   function dirty() { return JSON.stringify(doc) !== JSON.stringify(published); }
+
+  /* ------------------------------------------------------------------
+     Keeping her working copy
+     ------------------------------------------------------------------
+     Everything she does is kept as she does it, in the same place the
+     published site is kept, and none of it is public. So an afternoon's
+     work on a phone is waiting for her on a laptop that evening, and an
+     afternoon's work interrupted is still there next week. It becomes the
+     site the moment she presses Publish and not one moment sooner, which
+     is the whole point: she can leave something half said.
+     ------------------------------------------------------------------ */
+
+  function queueDraft() {
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(saveDraft, 1400);
+  }
+
+  function saveDraft() {
+    if (!token || !booted) return;
+    var sending = JSON.stringify(doc);
+    draftState = "keeping";
+    refreshBar();
+    post({ action: "draft", overlay: doc })
+      .then(function () {
+        /* If she has typed on since this went out, the thing that was kept
+           is already behind her: the next save is what will say "kept". */
+        draftState = JSON.stringify(doc) === sending ? "kept" : "keeping";
+        refreshBar();
+      })
+      .catch(function () {
+        draftState = "adrift";
+        refreshBar();
+      });
+  }
+
+  /* Everything unpublished, thrown away on purpose. */
+  function dropDraft() {
+    if (!confirm("Throw away everything you have changed since the last publish? The published site is not touched.")) return;
+    clearTimeout(draftTimer);
+    post({ action: "dropDraft" }).catch(function () { });
+    doc = copy(published);
+    history = [copy(doc)];
+    hIndex = 0;
+    draftState = "";
+    render();
+    toast("Thrown away. You are back to the published site.");
+  }
+
+  /* ------------------------------------------------------------------
+     Looking at the before
+     ------------------------------------------------------------------
+     The page is rendered from the published document instead of hers, so
+     what she sees is what a visitor is seeing right now, in place, at full
+     size. Nothing is recorded while she looks, and her own copy is held
+     untouched until she comes back to it.
+     ------------------------------------------------------------------ */
+
+  function peek(on) {
+    if (!!on === peeking) return;
+    if (on) { heldDoc = doc; doc = copy(published); }
+    else { doc = heldDoc; heldDoc = null; }
+    peeking = !!on;
+    render();
+    document.body.classList.toggle("opl-peeking", peeking);
+
+    var pill = document.getElementById("opl-peek");
+    if (!pill) {
+      pill = el("div");
+      pill.id = "opl-peek";
+      pill.innerHTML = '<span>This is the site as it is published now.</span>' +
+        '<button class="opl-btn primary" type="button">Back to my changes</button>';
+      pill.querySelector("button").onclick = function () { peek(false); };
+      document.body.appendChild(pill);
+    }
+    pill.classList.toggle("on", peeking);
+
+    /* She came here from a list she was reading. Put her back in it. */
+    if (!peeking && peekBack) {
+      var back = peekBack;
+      peekBack = null;
+      back();
+    }
+  }
 
   /* ------------------------------------------------------------------
      Marking what can be edited
@@ -608,7 +743,9 @@
     }
     selected = node;
     node.setAttribute("data-opl-sel", "");
-    buildPanel();
+    /* Held still while a live edit is in flight, so the control her hand is
+       on is still there when the page has finished changing. */
+    if (!holdPanel) buildPanel();
     if (!quiet) {
       var panel = document.getElementById("opl-panel");
       panel.classList.add("open");
@@ -619,6 +756,10 @@
 
   function onPageClick(e) {
     if (isChrome(e.target)) return;
+    /* What she is looking at is the published site, not her copy of it.
+       Selecting something here would offer to edit a page that is about to
+       be thrown away and replaced by her own. */
+    if (peeking) return;
     var hit = e.target.closest("[data-opl-e]");
     if (!hit) return;
     /* Links and buttons would otherwise carry her off the page she is
@@ -753,7 +894,7 @@
   /* A style needs a selector — that is how the same choice can differ
      between a phone and a laptop — and only a pinned element has one. So
      styling an element names it, once, before anything else. */
-  function setStyle(prop, value) {
+  function setStyle(prop, value, tag) {
     if (!haveSelection()) return;
     pin(selected);
     var id = capture(selected);
@@ -777,7 +918,8 @@
       if (!Object.keys(bag).length) delete edit.styleAt[screen];
       if (!Object.keys(edit.styleAt).length) delete edit.styleAt;
     }
-    push();
+    /* A tag means her hand is still on the control that asked for this. */
+    if (tag) pushLive(tag); else push();
   }
 
   /* Everything said about one element, forgotten. It works in a session
@@ -800,13 +942,13 @@
     if (was && !baseline[id]) baseline[id] = was;
   }
 
-  function setAttr(name, value) {
+  function setAttr(name, value, tag) {
     if (!haveSelection()) return;
     var id = capture(selected);
     var edit = nodeEdit(id);
     if (!edit.attrs) edit.attrs = {};
     edit.attrs[name] = value;
-    push();
+    if (tag) pushLive(tag); else push();
   }
 
   function toggleRemoved() {
@@ -1076,11 +1218,35 @@
     return node;
   }
 
+  /* Everything in the panel answers as she works it rather than when she
+     leaves it.
+
+     It used to answer to change, which on a text box means blur: she typed
+     a new heading, looked at the page, and the page still said the old one
+     until she happened to tap somewhere else. Which read, fairly, as the
+     panel not working. Now the page keeps up, a beat behind her last
+     keystroke, and the whole run of them is one thing to undo.
+
+     The beat matters: laying a version down re-renders the page, and doing
+     that on every keystroke of a long paragraph would stutter. A third of
+     a second after she stops is invisible to her and cheap to us. */
+  function live(fn, wait) {
+    var timer = null;
+    return function () {
+      var args = arguments;
+      clearTimeout(timer);
+      timer = setTimeout(function () { fn.apply(null, args); }, wait == null ? 320 : wait);
+    };
+  }
+
   function textControl(value, placeholder, onCommit) {
     var node = el("input", "opl-input");
     node.type = "text";
     node.value = value || "";
     node.placeholder = placeholder || "";
+    var tag = "text:" + rid("");
+    var soon = live(function () { onCommit(node.value.trim(), tag); });
+    node.oninput = soon;
     node.onchange = function () { onCommit(node.value.trim()); };
     return node;
   }
@@ -1093,7 +1259,11 @@
     var started = parseFloat(value);
     input.value = isNaN(started) ? (min + max) / 2 : started;
     var out = el("output", null, value || "—");
-    input.oninput = function () { out.textContent = input.value + unit; };
+    var tag = "slide:" + rid("");
+    /* Fast enough to feel like the handle is moving the page itself, slow
+       enough that a full drag is a few renders and not a hundred. */
+    var soon = live(function () { onChange(input.value + unit, tag); }, 60);
+    input.oninput = function () { out.textContent = input.value + unit; soon(); };
     input.onchange = function () { onChange(input.value + unit); };
     var clear = el("button", "opl-btn icon", "&times;");
     clear.title = "Back to the site's own";
@@ -1112,6 +1282,11 @@
     picker.style.padding = "3px";
     picker.style.height = "34px";
     try { picker.value = rgbToHex(getComputedStyle(selected)[prop]); } catch (e) { }
+    /* The whole point of a colour wheel is watching the thing change while
+       you move around it. */
+    var tag = "colour:" + prop + rid("");
+    var soon = live(function () { setStyle(prop, picker.value, tag); }, 60);
+    picker.oninput = soon;
     picker.onchange = function () { setStyle(prop, picker.value); };
     row.appendChild(picker);
     wrap.appendChild(row);
@@ -1280,6 +1455,84 @@
 
     head.innerHTML = "<h4>" + esc(kind) + " · " + esc(selected.tagName.toLowerCase()) + "</h4><p>" + esc(labelOf(selected)) + "</p>";
 
+    /* ---- asking for this one thing, in her own words ----
+
+       The bar's Ask is about the page: it is handed an outline of a hundred
+       and seventy elements and has to work out which one she means, and
+       when it picks the wrong one that reads as it ignoring her. This one
+       cannot pick wrong. It is standing on the thing she has selected, it
+       says so, and nothing else on the page is offered to it.
+
+       It sits at the top because it is the shortest way to say what she
+       wants: everything below is the same request spelled out in controls,
+       and some days she does not want to find the control. */
+    var askWrap = el("div", "opl-ask");
+    /* "Servant" is what this is called inside Wopara; on a customer's own
+       site it is the assistant, which is what the rest of this editor
+       calls it and what they will understand. */
+    askWrap.appendChild(el("p", "opl-h", "Describe the change for the assistant"));
+
+    var askArea = el("textarea", "opl-area opl-ask-area");
+    askArea.placeholder = "Make this bigger and centre it. Warmer colour. Say “Get in touch” instead.";
+    askWrap.appendChild(askArea);
+
+    var askSay = el("p", "opl-note opl-ask-say");
+    askSay.style.display = "none";
+
+    var askBtn = el("button", "opl-btn primary opl-ask-go", "Ask about this one");
+    askBtn.onclick = function () {
+      var wish = askArea.value.trim();
+      if (!wish) { askArea.focus(); return; }
+      if (!haveSelection()) return;
+
+      /* Held by name rather than by reference: laying the answer down
+         re-renders the page, and the element she is looking at is found
+         again from its address rather than assumed to be the same object. */
+      var here = OV.nodeId(selected);
+      var what = labelOf(selected);
+
+      askBtn.disabled = true;
+      askBtn.textContent = "Thinking…";
+      askSay.style.display = "";
+      askSay.textContent = "Asking about “" + what.slice(0, 40) + "”…";
+      aiLog.push({ who: "you", text: "(" + what.slice(0, 40) + ") " + wish });
+
+      post({
+        action: "ai",
+        prompt: wish,
+        context: {
+          page: pageKey(),
+          /* Just this one, and what is inside it. A whole page of choices
+             is what lets it wander off to the wrong heading. */
+          outline: branchOutline(selected),
+          target: here + " [" + kind + " " + selected.tagName.toLowerCase() + "] " + what,
+          only: here
+        }
+      })
+        .then(function (data) {
+          var made = applyOps(data.ops || [], here);
+          if (made) push();
+          aiLog.push({ who: "her", text: data.reply });
+          askArea.value = "";
+          askSay.textContent = data.reply + (made ? "" : " (nothing on the page changed)");
+          toast(made ? "Done. Undo is there if it is not what you meant." : "Nothing changed.");
+        })
+        .catch(function (err) { askSay.textContent = err.message; toast(err.message, true); })
+        .then(function () {
+          /* Laying the answer down rebuilt this panel, so the box that was
+             waiting for the reply is no longer the box on the screen. The
+             one on the screen is found again and told the same thing. */
+          var go = document.querySelector(".opl-ask-go");
+          if (go) { go.disabled = false; go.textContent = "Ask about this one"; }
+          var said = document.querySelector(".opl-ask-say");
+          if (said && askSay.textContent) { said.style.display = ""; said.textContent = askSay.textContent; }
+        });
+    };
+    askWrap.appendChild(askBtn);
+    askWrap.appendChild(askSay);
+    body.appendChild(askWrap);
+    body.appendChild(el("hr", "opl-hr"));
+
     /* A way back up the nesting, because the thing she wants is often the
        box around the thing she managed to click. */
     var up = selected.parentElement && selected.parentElement.closest("[data-opl-e]");
@@ -1334,11 +1587,18 @@
       body.appendChild(el("p", "opl-h", "Words"));
       var area = el("textarea", "opl-area");
       area.value = selected.innerHTML.trim();
-      area.onchange = function () {
+      var wordTag = "words:" + rid("");
+      function sayIt(tag) {
+        if (!selected || !selected.isConnected) return;
         var nid = capture(selected);
         nodeEdit(nid).html = OV.clean(area.value);
-        push();
-      };
+        if (tag) pushLive(tag); else push();
+      }
+      /* The page says what she is typing while she types it. This is the
+         one she reported: the words changed here and the page kept the old
+         ones until she happened to tap it. */
+      area.oninput = live(function () { sayIt(wordTag); });
+      area.onchange = function () { sayIt(); };
       body.appendChild(field("Text — plain, or simple HTML", area));
 
       var hint = el("p", "opl-note", "You can also double-click the words on the page and type straight onto them.");
@@ -1347,7 +1607,7 @@
       if (selected.tagName === "A") {
         body.appendChild(field("Where it goes", textControl(
           selected.getAttribute("href"), "about.html or https://…",
-          function (v) { setAttr("href", v); }
+          function (v, tag) { setAttr("href", v, tag); }
         )));
       }
       body.appendChild(el("hr", "opl-hr"));
@@ -1394,7 +1654,7 @@
 
       var altField = field("Described for a screen reader", textControl(
         selected.getAttribute("alt"), "What this picture shows",
-        function (v) { setAttr("alt", v); }
+        function (v, tag) { setAttr("alt", v, tag); }
       ));
       body.appendChild(altField);
       if (selected.getAttribute("alt") === null) {
@@ -1409,7 +1669,7 @@
         { label: "Cover — fill and crop", value: "cover" },
         { label: "Contain — show all of it", value: "contain" },
         { label: "Fill — stretch", value: "fill" }
-      ], styleNow("objectFit"), function (v) { setStyle("objectFit", v); })));
+      ], styleNow("objectFit"), function (v, tag) { setStyle("objectFit", v, tag); })));
 
       /* The same picture used everywhere — this is how the logo changes. */
       var original = selected.getAttribute("data-opl-original") || selected.getAttribute("src") || "";
@@ -1561,21 +1821,21 @@
     );
     body.appendChild(field("Face", fontSelect));
 
-    body.appendChild(field("Size", sliderControl(styleNow("fontSize"), 10, 96, "px", function (v) { setStyle("fontSize", v); })));
+    body.appendChild(field("Size", sliderControl(styleNow("fontSize"), 10, 96, "px", function (v, tag) { setStyle("fontSize", v, tag); })));
     body.appendChild(field("Weight", selectControl([
       { label: "As the site sets it", value: "" },
       { label: "Light", value: "300" }, { label: "Regular", value: "400" },
       { label: "Medium", value: "500" }, { label: "Semibold", value: "600" }, { label: "Bold", value: "700" }
-    ], styleNow("fontWeight"), function (v) { setStyle("fontWeight", v); })));
+    ], styleNow("fontWeight"), function (v, tag) { setStyle("fontWeight", v, tag); })));
 
-    body.appendChild(field("Line height", sliderControl(styleNow("lineHeight"), 0.9, 2.4, "", function (v) { setStyle("lineHeight", v); })));
-    body.appendChild(field("Letter spacing", sliderControl(styleNow("letterSpacing"), -0.05, 0.4, "em", function (v) { setStyle("letterSpacing", v); })));
+    body.appendChild(field("Line height", sliderControl(styleNow("lineHeight"), 0.9, 2.4, "", function (v, tag) { setStyle("lineHeight", v, tag); })));
+    body.appendChild(field("Letter spacing", sliderControl(styleNow("letterSpacing"), -0.05, 0.4, "em", function (v, tag) { setStyle("letterSpacing", v, tag); })));
 
     body.appendChild(field("Alignment", selectControl([
       { label: "As the site sets it", value: "" },
       { label: "Left", value: "left" }, { label: "Centre", value: "center" },
       { label: "Right", value: "right" }, { label: "Justified", value: "justify" }
-    ], styleNow("textAlign"), function (v) { setStyle("textAlign", v); })));
+    ], styleNow("textAlign"), function (v, tag) { setStyle("textAlign", v, tag); })));
 
     body.appendChild(field("Colour", colorControl("color")));
 
@@ -1596,14 +1856,14 @@
 
     /* ---- the box it sits in ---- */
     body.appendChild(el("p", "opl-h", "Its box"));
-    body.appendChild(field("Width", textControl(styleNow("width"), "e.g. 60%, 420px, auto", function (v) { setStyle("width", v); })));
-    body.appendChild(field("Widest it may get", textControl(styleNow("maxWidth"), "e.g. 780px", function (v) { setStyle("maxWidth", v); })));
-    body.appendChild(field("Height", textControl(styleNow("height"), "e.g. 320px, auto", function (v) { setStyle("height", v); })));
-    body.appendChild(field("Space inside", textControl(styleNow("padding"), "e.g. 40px, or 40px 24px", function (v) { setStyle("padding", v); })));
-    body.appendChild(field("Space around", textControl(styleNow("margin"), "e.g. 60px 0", function (v) { setStyle("margin", v); })));
-    body.appendChild(field("Corner rounding", textControl(styleNow("borderRadius"), "e.g. 22px, or 999px 999px 22px 22px", function (v) { setStyle("borderRadius", v); })));
+    body.appendChild(field("Width", textControl(styleNow("width"), "e.g. 60%, 420px, auto", function (v, tag) { setStyle("width", v, tag); })));
+    body.appendChild(field("Widest it may get", textControl(styleNow("maxWidth"), "e.g. 780px", function (v, tag) { setStyle("maxWidth", v, tag); })));
+    body.appendChild(field("Height", textControl(styleNow("height"), "e.g. 320px, auto", function (v, tag) { setStyle("height", v, tag); })));
+    body.appendChild(field("Space inside", textControl(styleNow("padding"), "e.g. 40px, or 40px 24px", function (v, tag) { setStyle("padding", v, tag); })));
+    body.appendChild(field("Space around", textControl(styleNow("margin"), "e.g. 60px 0", function (v, tag) { setStyle("margin", v, tag); })));
+    body.appendChild(field("Corner rounding", textControl(styleNow("borderRadius"), "e.g. 22px, or 999px 999px 22px 22px", function (v, tag) { setStyle("borderRadius", v, tag); })));
     body.appendChild(field("Background colour", colorControl("backgroundColor")));
-    body.appendChild(field("Opacity", sliderControl(styleNow("opacity"), 0, 1, "", function (v) { setStyle("opacity", v); })));
+    body.appendChild(field("Opacity", sliderControl(styleNow("opacity"), 0, 1, "", function (v, tag) { setStyle("opacity", v, tag); })));
   }
 
   /* ------------------------------------------------------------------
@@ -1651,10 +1911,42 @@
     return lines.join("\n");
   }
 
-  function applyOps(ops) {
+  /* One element and everything inside it, for a request that is about that
+     element. Its own line comes first so the assistant is in no doubt which
+     address the words "this one" belong to. */
+  function branchOutline(node) {
+    var lines = [OV.nodeId(node) + " [" + node.getAttribute("data-opl-e") + " " +
+      node.tagName.toLowerCase() + "] " + labelOf(node) + "   <- THIS ONE"];
+    var inside = node.querySelectorAll("[data-opl-e]");
+    for (var i = 0; i < inside.length && lines.length < 60; i++) {
+      lines.push("  " + OV.nodeId(inside[i]) + " [" + inside[i].getAttribute("data-opl-e") + " " +
+        inside[i].tagName.toLowerCase() + "] " + labelOf(inside[i]));
+    }
+    return lines.join("\n");
+  }
+
+  /* When the request came from the panel it was about one element, and
+     nothing outside that element may be touched however the answer is
+     worded. The assistant is told this; this is what makes it true.
+
+     A page-wide rule is refused outright in that case rather than trimmed:
+     there is no such thing as a stylesheet that only applies to one
+     element, and half-applying one is worse than declining it. */
+  function applyOps(ops, only) {
+    var fence = only ? OV.resolve(only) : null;
+
+    function allowed(id) {
+      if (!fence) return true;
+      var node = OV.resolve(id);
+      return !!node && (node === fence || fence.contains(node));
+    }
+
     var count = 0;
     ops.forEach(function (op) {
       if (!op || !op.op) return;
+      if (fence && op.op === "css") return;
+      if (fence && op.id && !allowed(op.id)) return;
+      if (fence && op.op === "insertHtml" && !allowed(op.afterId)) return;
       if (op.op === "css") {
         if (!doc.globals) doc.globals = {};
         doc.globals.css = (doc.globals.css || "") + "\n" + String(op.value || "");
@@ -2255,11 +2547,384 @@
      Publishing
      ------------------------------------------------------------------ */
 
+  /* ------------------------------------------------------------------
+     What this publish would change
+     ------------------------------------------------------------------
+     Not everything she has ever changed, which is a different question and
+     has its own sheet. This is the difference between the site as it
+     stands published and the site as she has it now: the list of what
+     visitors would notice tomorrow morning that they cannot see tonight.
+     ------------------------------------------------------------------ */
+
+  /* What the site itself says, for the half of a comparison that has no
+     edit behind it. js/overlay.js kept this at the moment it first
+     overwrote each element, so it survives a sign-in that never saw the
+     untouched page. */
+  function sitesOwn(id) {
+    return OV.originalOf(id) || baseline[id] || {};
+  }
+
+  function styleBags(edit) {
+    var out = {};
+    Object.keys((edit || {}).style || {}).forEach(function (p) { out["base|" + p] = edit.style[p]; });
+    Object.keys((edit || {}).styleAt || {}).forEach(function (screen) {
+      Object.keys(edit.styleAt[screen]).forEach(function (p) { out[screen + "|" + p] = edit.styleAt[screen][p]; });
+    });
+    return out;
+  }
+
+  /* Every look that differs between two versions of one element, named the
+     way the panel names it, with the width it applies at when that is not
+     every width. */
+  function styleDiff(was, now) {
+    var a = styleBags(was), b = styleBags(now);
+    var keys = {};
+    Object.keys(a).concat(Object.keys(b)).forEach(function (k) { keys[k] = 1; });
+    var rows = [];
+    Object.keys(keys).sort().forEach(function (k) {
+      if ((a[k] || "") === (b[k] || "")) return;
+      var cut = k.split("|");
+      rows.push({
+        prop: cut[1],
+        screen: cut[0] === "base" ? "" : cut[0],
+        from: a[k] || "",
+        to: b[k] || ""
+      });
+    });
+    return rows;
+  }
+
+  function attrDiff(was, now) {
+    var a = (was || {}).attrs || {}, b = (now || {}).attrs || {};
+    var keys = {};
+    Object.keys(a).concat(Object.keys(b)).forEach(function (k) { keys[k] = 1; });
+    var rows = [];
+    Object.keys(keys).sort().forEach(function (k) {
+      if ((a[k] || "") === (b[k] || "")) return;
+      rows.push({ name: k, from: a[k] || "", to: b[k] || "" });
+    });
+    return rows;
+  }
+
+  function wordsOf(edit, id) {
+    if (edit && typeof edit.html === "string") return edit.html;
+    if (edit && typeof edit.text === "string") return esc(edit.text);
+    var own = sitesOwn(id);
+    return typeof own.html === "string" ? own.html : "";
+  }
+
+  function pictureOf(edit, id) {
+    if (edit && edit.src) return edit.src;
+    var own = sitesOwn(id);
+    return own.src || "";
+  }
+
+  function describeDiff(was, now, id) {
+    was = was || {}; now = now || {};
+    var bits = [];
+    if (!!now.hidden !== !!was.hidden) bits.push(now.hidden ? "taken off the page" : "put back on the page");
+    if (wordsOf(was, id) !== wordsOf(now, id)) bits.push("different wording");
+    if ((now.src || "") !== (was.src || "")) bits.push("a different picture");
+    if ((now.bgImage || "") !== (was.bgImage || "")) bits.push("a different background");
+    var looks = styleDiff(was, now);
+    if (looks.length) {
+      bits.push(looks.length === 1
+        ? "its " + plainProp(looks[0].prop)
+        : looks.length + " changes to how it looks");
+    }
+    var attrs = attrDiff(was, now);
+    attrs.forEach(function (r) { bits.push(plainAttr(r.name)); });
+    return bits.join(", ") || "changed";
+  }
+
+  var PLAIN_PROP = {
+    fontSize: "size", fontWeight: "weight", fontFamily: "typeface", lineHeight: "line height",
+    letterSpacing: "letter spacing", textAlign: "alignment", color: "colour",
+    backgroundColor: "background colour", background: "background", padding: "space inside",
+    margin: "space around", borderRadius: "corner rounding", opacity: "opacity",
+    width: "width", maxWidth: "widest it may get", height: "height", display: "whether it shows",
+    objectFit: "how it fills its frame", border: "border", boxShadow: "shadow"
+  };
+  function plainProp(p) { return PLAIN_PROP[p] || p; }
+
+  var PLAIN_ATTR = {
+    href: "where it goes", alt: "its description for a screen reader",
+    title: "its tooltip", src: "its picture", "aria-label": "its spoken label"
+  };
+  function plainAttr(a) { return PLAIN_ATTR[a] || a; }
+
+  /* Every difference between what is published and what she has, as a flat
+     list she can read down. */
+  function changeRows() {
+    var rows = [];
+    var pages = {};
+    Object.keys(doc.pages || {}).forEach(function (k) { pages[k] = 1; });
+    Object.keys(published.pages || {}).forEach(function (k) { pages[k] = 1; });
+
+    Object.keys(pages).sort().forEach(function (key) {
+      var mine = (doc.pages || {})[key] || {};
+      var live = (published.pages || {})[key] || {};
+      var here = key === pageKey();
+
+      var ids = {};
+      Object.keys(mine.nodes || {}).forEach(function (id) { ids[id] = 1; });
+      Object.keys(live.nodes || {}).forEach(function (id) { ids[id] = 1; });
+
+      Object.keys(ids).forEach(function (id) {
+        var was = (live.nodes || {})[id];
+        var now = (mine.nodes || {})[id];
+        if (JSON.stringify(was || null) === JSON.stringify(now || null)) return;
+        var node = here ? OV.resolve(id) : null;
+        rows.push({
+          page: key, id: id, was: was, now: now, node: node,
+          title: (now && now.label) || (was && was.label) || (node ? labelOf(node) : id),
+          say: now ? describeDiff(was, now, id) : "put back the way it was"
+        });
+      });
+
+      var madeNow = {}, madeLive = {};
+      (mine.inserts || []).forEach(function (e) { madeNow[e.id] = e; });
+      (live.inserts || []).forEach(function (e) { madeLive[e.id] = e; });
+      Object.keys(madeNow).forEach(function (id) {
+        if (madeLive[id] || ids[id]) return;
+        rows.push({
+          page: key, id: id, added: madeNow[id], node: here ? OV.resolve(id) : null,
+          title: madeNow[id].label || "something added", say: "added, and not published yet"
+        });
+      });
+      Object.keys(madeLive).forEach(function (id) {
+        if (madeNow[id] || ids[id]) return;
+        rows.push({
+          page: key, id: id, removedInsert: madeLive[id],
+          title: madeLive[id].label || "something added", say: "taken away again"
+        });
+      });
+
+      if (JSON.stringify(mine.order || {}) !== JSON.stringify(live.order || {})) {
+        rows.push({ page: key, id: "__order", title: "The order of things on this page", say: "something was moved" });
+      }
+      if (JSON.stringify(mine.meta || null) !== JSON.stringify(live.meta || null)) {
+        rows.push({
+          page: key, id: "__meta", title: "This page's title and sharing card", say: "changed",
+          meta: { was: live.meta || {}, now: mine.meta || {} }
+        });
+      }
+    });
+
+    var gNow = doc.globals || {}, gLive = published.globals || {};
+    if (JSON.stringify(gNow.imageSwaps || {}) !== JSON.stringify(gLive.imageSwaps || {})) {
+      var swaps = Object.assign({}, gLive.imageSwaps, gNow.imageSwaps);
+      Object.keys(swaps).forEach(function (from) {
+        if ((gNow.imageSwaps || {})[from] === (gLive.imageSwaps || {})[from]) return;
+        rows.push({
+          page: "the whole site", id: "swap:" + from,
+          title: from.split("/").pop() + ", everywhere it appears",
+          say: (gNow.imageSwaps || {})[from] ? "a different picture" : "put back",
+          swap: { from: from, was: (gLive.imageSwaps || {})[from] || from, now: (gNow.imageSwaps || {})[from] || from }
+        });
+      });
+    }
+    if ((gNow.css || "") !== (gLive.css || "")) {
+      rows.push({ page: "the whole site", id: "__css", title: "A rule the assistant wrote for the whole site", say: "changed" });
+    }
+    if (JSON.stringify(doc.newPages || {}) !== JSON.stringify(published.newPages || {})) {
+      var slugs = Object.assign({}, published.newPages, doc.newPages);
+      Object.keys(slugs).forEach(function (slug) {
+        var a = (published.newPages || {})[slug], b = (doc.newPages || {})[slug];
+        if (JSON.stringify(a || null) === JSON.stringify(b || null)) return;
+        rows.push({
+          page: "the whole site", id: "page:" + slug,
+          title: (b || a).title + "  (/p/" + slug + ")",
+          say: !a ? "a new page, not published yet" : (!b ? "a page taken away" : "changed")
+        });
+      });
+    }
+    if (JSON.stringify((doc.popups || [])) !== JSON.stringify((published.popups || []))) {
+      rows.push({ page: "the whole site", id: "__popups", title: "Popups", say: "changed" });
+    }
+    if (JSON.stringify((gNow.catalog || {})) !== JSON.stringify((gLive.catalog || {}))) {
+      rows.push({ page: "the whole site", id: "__catalog", title: "Prices and titles", say: "changed" });
+    }
+    return rows;
+  }
+
+  /* ---- the two halves, side by side ---- */
+
+  function colourish(v) { return /^(#|rgb|hsl)/i.test(String(v || "").trim()); }
+
+  function valueChip(v, empty) {
+    var span = el("span", "opl-ba-val");
+    if (!v) { span.className += " none"; span.textContent = empty || "the site's own"; return span; }
+    if (colourish(v)) {
+      var dot = el("i", "opl-ba-dot");
+      dot.style.background = v;
+      span.appendChild(dot);
+    }
+    span.appendChild(document.createTextNode(String(v)));
+    return span;
+  }
+
+  function halfOf(title, build) {
+    var col = el("div", "opl-ba-col");
+    col.appendChild(el("span", "opl-ba-tag", title));
+    build(col);
+    return col;
+  }
+
+  function beforeAfter(row) {
+    var wrap = el("div", "opl-ba");
+
+    if (row.swap) {
+      [["Before", row.swap.was], ["After", row.swap.now]].forEach(function (side) {
+        wrap.appendChild(halfOf(side[0], function (col) {
+          var img = el("img", "opl-ba-img");
+          img.src = side[1];
+          col.appendChild(img);
+        }));
+      });
+      return wrap;
+    }
+
+    if (row.added || row.removedInsert) {
+      var made = row.added || row.removedInsert;
+      wrap.appendChild(halfOf(row.added ? "Before" : "After", function (col) {
+        col.appendChild(el("p", "opl-ba-none", "Not on the page."));
+      }));
+      wrap.appendChild(halfOf(row.added ? "After" : "Before", function (col) {
+        col.appendChild(el("div", "opl-ba-html", OV.clean(made.html || "")));
+      }));
+      return wrap;
+    }
+
+    if (row.meta) {
+      ["Before", "After"].forEach(function (side, i) {
+        var m = i ? row.meta.now : row.meta.was;
+        wrap.appendChild(halfOf(side, function (col) {
+          col.appendChild(el("div", "opl-ba-html",
+            "<b>" + esc(m.title || "the page's own title") + "</b><br>" + esc(m.description || "")));
+        }));
+      });
+      return wrap;
+    }
+
+    var was = row.was || {}, now = row.now || {};
+    var wordsWas = wordsOf(was, row.id), wordsNow = wordsOf(now, row.id);
+    var picWas = pictureOf(was, row.id), picNow = pictureOf(now, row.id);
+    var looks = styleDiff(was, now);
+    var attrs = attrDiff(was, now);
+    var hid = !!was.hidden !== !!now.hidden;
+
+    function side(title, edit, words, pic) {
+      return halfOf(title, function (col) {
+        if (hid) col.appendChild(el("p", "opl-ba-none", edit.hidden ? "Taken off the page." : "On the page."));
+        if (wordsWas !== wordsNow) col.appendChild(el("div", "opl-ba-html", OV.clean(words)));
+        if (picWas !== picNow && pic) {
+          var img = el("img", "opl-ba-img");
+          img.src = pic;
+          col.appendChild(img);
+        }
+        looks.forEach(function (r) {
+          var line = el("div", "opl-ba-line");
+          line.appendChild(el("b", null, esc(plainProp(r.prop) + (r.screen ? " (" + r.screen + ")" : ""))));
+          line.appendChild(valueChip(title === "Before" ? r.from : r.to));
+          col.appendChild(line);
+        });
+        attrs.forEach(function (r) {
+          var line = el("div", "opl-ba-line");
+          line.appendChild(el("b", null, esc(plainAttr(r.name))));
+          line.appendChild(valueChip(title === "Before" ? r.from : r.to, "nothing"));
+          col.appendChild(line);
+        });
+        /* Only the label, which means the difference is one this half has
+           no way of drawing. Better said than left blank. */
+        if (col.children.length === 1) col.appendChild(el("p", "opl-ba-none", "Nothing to draw for this one."));
+      });
+    }
+
+    wrap.appendChild(side("Before", was, wordsWas, picWas));
+    wrap.appendChild(side("After", now, wordsNow, picNow));
+    return wrap;
+  }
+
+  /* ---- the sheet she meets when she presses Publish ---- */
+
+  var peekBack = null;
+
+  function openPublish() {
+    var rows = changeRows();
+    if (!rows.length) { toast("Nothing to publish. The site already says what you have."); return; }
+
+    sheet("Before you publish", function (body) {
+      body.appendChild(el("p", "opl-note",
+        "These " + rows.length + " change" + (rows.length === 1 ? " is" : "s are") +
+        " the difference between the site as visitors see it now and the site as you have it. " +
+        "Nothing here is live until you press Publish."));
+
+      var whole = el("button", "opl-btn", "See the whole site as it is published");
+      whole.style.width = "100%";
+      whole.style.marginBottom = "14px";
+      whole.onclick = function () {
+        peekBack = openPublish;
+        closeSheet();
+        peek(true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      };
+      body.appendChild(whole);
+
+      var byPage = {};
+      rows.forEach(function (r) { (byPage[r.page] = byPage[r.page] || []).push(r); });
+
+      Object.keys(byPage).forEach(function (key) {
+        body.appendChild(el("p", "opl-h", key + (key === pageKey() ? "  ·  you are here" : "")));
+        var list = el("ul", "opl-list opl-bullets");
+
+        byPage[key].forEach(function (r) {
+          var item = el("li");
+          var head = el("div");
+          head.appendChild(el("b", null, esc(String(r.title).slice(0, 70))));
+          head.appendChild(el("small", null, esc(r.say)));
+          item.appendChild(head);
+
+          var seeBtn = el("button", "opl-btn", "Before &amp; after");
+          var panel = null;
+          seeBtn.onclick = function () {
+            if (panel) { panel.parentNode.removeChild(panel); panel = null; seeBtn.innerHTML = "Before &amp; after"; return; }
+            panel = beforeAfter(r);
+            item.appendChild(panel);
+            seeBtn.textContent = "Hide";
+          };
+          item.appendChild(seeBtn);
+
+          if (r.node) {
+            var place = el("button", "opl-btn", "In place");
+            place.title = "Show me this one on the page, as it is published";
+            place.onclick = function () {
+              peekBack = openPublish;
+              closeSheet();
+              peek(true);
+              var again = OV.resolve(r.id);
+              if (again) again.scrollIntoView({ behavior: "smooth", block: "center" });
+            };
+            item.appendChild(place);
+          }
+
+          list.appendChild(item);
+        });
+        body.appendChild(list);
+      });
+    }, [{
+      label: "Publish all of it",
+      primary: true,
+      onClick: function () { closeSheet(); publish(); }
+    }]);
+  }
+
   function publish() {
     return post({ action: "publish", overlay: doc })
       .then(function (data) {
         published = copy(doc);
         currentIsSaved = !!data.currentIsSaved;
+        draftState = "";
         if (typeof data.reserves === "number") reserves = data.reserves;
         refreshBar();
 
@@ -2299,8 +2964,15 @@
     if (!bar) return;
     bar.querySelector("[data-opl-undo]").disabled = hIndex <= 0;
     bar.querySelector("[data-opl-redo]").disabled = hIndex >= history.length - 1;
+    /* Two things at once: that there is unpublished work, and that it is
+       somewhere safe. The second is the one that lets her close the laptop
+       in the middle of a sentence. */
     var count = bar.querySelector("#opl-count");
-    count.textContent = dirty() ? "unpublished changes" : "";
+    var kept = { keeping: "keeping…", kept: "kept for later", adrift: "not kept yet" }[draftState] || "";
+    count.textContent = peeking
+      ? "you are looking at the published site"
+      : (dirty() ? "unpublished changes" + (kept ? "  ·  " + kept : "") : "");
+    count.className = draftState === "adrift" && dirty() && !peeking ? "bad" : "";
 
     var purse = bar.querySelector("#opl-reserves");
     if (purse) {
@@ -2310,7 +2982,7 @@
         purse.classList.toggle("low", reserves <= 15);
       }
     }
-    bar.querySelector("[data-opl-publish]").disabled = !dirty();
+    bar.querySelector("[data-opl-publish]").disabled = !dirty() || peeking;
   }
 
   function buildChrome() {
@@ -2345,6 +3017,7 @@
       ["Popups", openPopups],
       ["Check the site", openChecks],
       ["What I've changed", openChanges],
+      ["Throw away what is not published", dropDraft],
       ["Saved versions", function () { loadState().then(openSaves).catch(function (e) { toast(e.message, true); }); }],
       ["What it has cost", function () { loadState().then(openLedger).catch(function (e) { toast(e.message, true); }); }]
     ];
@@ -2362,7 +3035,10 @@
     bar.querySelector("[data-opl-add]").onclick = function () { openBlocks(selected); };
     bar.querySelector("[data-opl-ai]").onclick = openAI;
     bar.querySelector("[data-opl-screen]").onclick = openPreview;
-    bar.querySelector("[data-opl-publish]").onclick = publish;
+    /* Publishing goes through the list first. She asked to see what she was
+       about to do to the site before she did it, which is the one moment
+       the question is worth asking. */
+    bar.querySelector("[data-opl-publish]").onclick = openPublish;
     bar.querySelector("[data-opl-help]").onclick = function () { tour(0); };
     bar.querySelector("[data-opl-out]").onclick = signOut;
 
@@ -2441,15 +3117,27 @@
 
     loadState()
       .then(function (data) {
-        doc = data.overlay || OV.empty();
-        published = copy(doc);
+        published = data.overlay || OV.empty();
+
+        /* Where she left off, whichever machine she left off on. The
+           published document stays the published document: this is her
+           copy of it, laid on top, and nobody else can see it. */
+        var resumed = data.draft && JSON.stringify(data.draft) !== JSON.stringify(published);
+        doc = resumed ? data.draft : copy(published);
+
         history = [copy(doc)];
         hIndex = 0;
+        draftState = resumed ? "kept" : "";
         render();
         seedBaseline();
         healAndReport();
 
-        if (!tourSeen()) setTimeout(function () { tour(0); }, 700);
+        if (resumed) {
+          var when = data.draftAt ? new Date(data.draftAt) : null;
+          toast("Picking up where you left off" +
+            (when ? ", from " + when.toLocaleString() : "") +
+            ". Nobody sees this until you publish.");
+        } else if (!tourSeen()) setTimeout(function () { tour(0); }, 700);
         else toast("Signed in. Click anything to change it.");
       })
       .catch(function (err) {
@@ -2472,19 +3160,38 @@
         e.preventDefault();
         if (e.shiftKey) redo(); else undo();
       }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") { e.preventDefault(); publish(); }
-      if (e.key === "Escape" && !typing) { closeSheet(); clearSelection(); }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") { e.preventDefault(); openPublish(); }
+      if (e.key === "Escape" && !typing) {
+        if (peeking) { peek(false); return; }
+        closeSheet();
+        clearSelection();
+      }
     });
 
+    /* Only when the last thing she did has not reached the store yet.
+       Warning her about work that is already kept somewhere she can pick
+       it up from is the kind of alarm people learn to click through. */
     window.addEventListener("beforeunload", function (e) {
-      if (!dirty()) return;
+      if (!dirty() || draftState === "kept") return;
       e.preventDefault();
       e.returnValue = "";
+    });
+
+    /* And the last beat of typing, sent before the tab goes. */
+    window.addEventListener("pagehide", function () {
+      if (!dirty() || draftState === "kept" || !token) return;
+      try {
+        navigator.sendBeacon(ENDPOINT, new Blob(
+          [JSON.stringify({ token: token, action: "draft", overlay: doc })],
+          { type: "application/json" }
+        ));
+      } catch (err) { }
     });
   }
 
   function signOut() {
-    if (dirty() && !confirm("You have changes that are not published. Sign out anyway?")) return;
+    if (dirty() && draftState !== "kept" &&
+      !confirm("Your last few changes have not been kept yet. Sign out anyway?")) return;
     try { localStorage.removeItem(TOKEN_KEY); } catch (e) { }
     token = null;
     window.OPALINE_EDITING = false;

@@ -1393,3 +1393,185 @@ body.opl-editing [data-opl-e="video"] {
 .op-get span { transition: transform .22s cubic-bezier(.22, 1, .36, 1); }
 .op-get:hover { color: var(--opl-accent); }
 .op-get:hover span { transform: translateX(4px); }
+
+/* ==========================================================================
+   Asking about one thing
+   --------------------------------------------------------------------------
+   At the top of the panel, above the controls, because it is the shortest
+   way to say what she wants. Everything below it is the same request spelled
+   out in sliders, and some days she does not want to find the slider.
+   ========================================================================== */
+
+.opl-ask { margin-bottom: 14px; }
+
+.opl-ask-area {
+  min-height: 58px;
+  font-size: 13px;
+}
+
+.opl-ask-go { width: 100%; margin-top: 8px; }
+
+.opl-ask-say {
+  margin: 9px 0 0;
+  padding: 9px 11px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid var(--opl-line);
+  color: var(--opl-text);
+}
+
+/* ==========================================================================
+   Before and after
+   --------------------------------------------------------------------------
+   The two halves of one change, side by side, in the sheet she meets when
+   she presses Publish. Side by side down to about a phone, where they stack
+   and keep their labels so it is still obvious which is which.
+   ========================================================================== */
+
+.opl-bullets li { flex-wrap: wrap; }
+
+.opl-ba {
+  flex-basis: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 11px;
+  padding-top: 11px;
+  border-top: 1px solid var(--opl-line);
+}
+
+@media (max-width: 560px) {
+  .opl-ba { grid-template-columns: 1fr; }
+}
+
+.opl-ba-col {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--opl-line);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .03);
+}
+
+/* The after half is the one she is deciding about, so it is the one that
+   is lit. */
+.opl-ba-col:last-child {
+  border-color: rgba(47, 90, 140, .45);
+  background: rgba(47, 90, 140, .07);
+}
+
+.opl-ba-tag {
+  display: block;
+  font: 600 10px/1 ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  color: var(--opl-mute);
+  margin-bottom: 8px;
+}
+
+.opl-ba-col:last-child .opl-ba-tag { color: var(--opl-accent); }
+
+/* Her own words, shown as words rather than as markup, but never allowed
+   to bring the site's own type scale into a 13px panel with them. */
+.opl-ba-html {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--opl-text);
+  max-height: 190px;
+  overflow: auto;
+  overflow-wrap: anywhere;
+}
+.opl-ba-html * {
+  font-size: inherit !important;
+  line-height: inherit !important;
+  color: inherit !important;
+  margin: 0 0 .4em !important;
+  max-width: 100%;
+}
+
+.opl-ba-img {
+  width: 100%;
+  height: auto;
+  max-height: 150px;
+  object-fit: contain;
+  border-radius: 7px;
+  margin-top: 4px;
+}
+
+.opl-ba-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  margin-top: 6px;
+}
+.opl-ba-line b { color: var(--opl-mute); font-weight: 600; }
+
+.opl-ba-val {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--opl-text);
+  overflow-wrap: anywhere;
+}
+.opl-ba-val.none { color: var(--opl-mute); font-style: italic; }
+
+.opl-ba-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1px solid var(--opl-line);
+  flex: none;
+}
+
+.opl-ba-none { margin: 0; font-size: 12px; color: var(--opl-mute); font-style: italic; }
+
+/* ==========================================================================
+   Looking at the published site
+   --------------------------------------------------------------------------
+   The page really is rendered from the published document while this is up,
+   so the pill has to be unmistakable: what she is looking at is not her
+   work, and every dashed box is gone while she looks.
+   ========================================================================== */
+
+body.opl-peeking [data-opl-e] { outline: none !important; background-color: transparent !important; }
+body.opl-peeking [data-opl-sel] { outline: none !important; }
+body.opl-peeking #opl-panel { display: none; }
+
+#opl-peek {
+  position: fixed;
+  left: 50%;
+  bottom: 92px;
+  transform: translate(-50%, 26px);
+  z-index: calc(var(--opl-z) + 6);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 12px 11px 18px;
+  border-radius: 999px;
+  background: var(--opl-ink);
+  border: 1px solid var(--opl-line);
+  box-shadow: var(--opl-shadow);
+  color: var(--opl-text);
+  font: 500 13px/1 ui-sans-serif, system-ui, sans-serif;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease, transform .24s cubic-bezier(.22, 1, .36, 1);
+}
+
+#opl-peek.on { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+
+/* On a phone the bar is at the top, so the pill has the bottom to itself. */
+@media (max-width: 720px) {
+  #opl-peek {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    left: 12px;
+    right: 12px;
+    transform: translate(0, 26px);
+    justify-content: space-between;
+  }
+  #opl-peek.on { transform: translate(0, 0); }
+  #opl-peek span { font-size: 12px; }
+}
+
+#opl-count.bad { color: #E88B6F; }

@@ -1507,7 +1507,7 @@
           "vertical-align:middle;" +
           "font:inherit;color:inherit;text-decoration:none;" +
           "opacity:.6;transition:opacity .25s ease}" +
-        ".opaline-door:hover{opacity:1}" +
+        "@media (hover:hover) and (pointer:fine){.opaline-door:hover{opacity:1}}" +
         /* The file carries a wide transparent margin, the same one the
            maker's credit mark beside it carries, so it is scaled up
            inside its own footprint rather than given a bigger box. */
@@ -1517,7 +1517,19 @@
           "transform:scale(1.5);" +
           "filter:var(--opl-door-mark,brightness(0));" +
           "opacity:.85;transition:opacity .25s ease}" +
-        ".opaline-door:hover .opaline-mark{opacity:1}";
+        "@media (hover:hover) and (pointer:fine){.opaline-door:hover .opaline-mark{opacity:1}}" +
+        /* Hovering is a mouse's idea. On a touch screen WebKit only
+           pretends, and the pretence follows the finger: a thumb near the
+           door fades it up and down and up again — which reads as
+           blinking — and the tap that caused it is spent on the pretence
+           instead of on the door. Where nothing can hover, nothing fades.
+
+           And the door is the last thing in a footer, which on a phone is
+           the strip the browser's own bar stands in. The padding lifts the
+           word out of it as much as it enlarges what a thumb has to aim
+           at. */
+        "@media (hover:none){.opaline-door,.opaline-mark{transition:none}}" +
+        "@media (pointer:coarse){.opaline-door{min-height:44px;padding-block:11px}}";
       document.head.appendChild(sheet);
     }
 

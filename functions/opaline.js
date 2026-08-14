@@ -208,7 +208,33 @@ function db() {
 const OVERLAY_REF = (site) => db().collection("sites").doc(site).collection("state").doc("overlay");
 const SAVES_REF = (site) => db().collection("sites").doc(site).collection("saves");
 
+/* Her working copy: what she has changed and not yet published.
+   ---------------------------------------------------------------------
+   A document of its own, beside the live one and never in place of it.
+   The public read serves `overlay` and only `overlay`, so nothing here
+   can reach a visitor however wrong anything else goes, and the rules
+   deny the browser both, so this is only ever read back to a request
+   carrying a valid editing token.
+
+   It is what lets her stop in the middle. Work done on a phone on
+   Tuesday is on the laptop on Thursday, still unpublished, still hers,
+   and it costs nothing: keeping a working copy is not a publish.
+   --------------------------------------------------------------------- */
+const DRAFT_REF = (site) => db().collection("sites").doc(site).collection("state").doc("draft");
+
 const EMPTY_OVERLAY = { v: 1, globals: {}, pages: {}, newPages: {}, popups: [] };
+
+async function readDraft(site) {
+  const snap = await DRAFT_REF(site).get();
+  if (!snap.exists) return null;
+  const d = snap.data() || {};
+  if (typeof d.json !== "string") return null;
+  try {
+    return { doc: JSON.parse(d.json), json: d.json, updatedAt: d.updatedAt || 0 };
+  } catch (e) {
+    return null;
+  }
+}
 
 async function readOverlay(site) {
   const snap = await OVERLAY_REF(site).get();
@@ -331,7 +357,18 @@ async function askDeepSeek(prompt, context, key, site) {
              element the words happen to match first, which reads to her as
              being ignored. */
           ? "\n\nSHE HAS SELECTED THIS ONE, and the request is about it:\n" + context.target +
-            "\nChange that element. Touch another only where the request plainly asks for it."
+            (context.only
+              /* Asked from the panel, which is standing on one element. She
+                 is looking at that element, she described a change to that
+                 element, and an op that lands anywhere else is not a
+                 generous reading of her words: it is a wrong answer. The
+                 editor refuses them as well, so this is the polite half of
+                 a rule that is enforced either way. */
+              ? "\n\nThis request came from the panel for that one element. Change ONLY that element" +
+                " or something inside it. Do not touch anything else on the page, and do not write" +
+                " site-wide CSS. If what she asks cannot be done inside it, say so in reply and" +
+                " return no ops."
+              : "\nChange that element. Touch another only where the request plainly asks for it.")
           : "\n\nNothing is selected: the request is about the page as a whole.") +
         "\n\nThe owner asks: " + prompt
     }
@@ -636,10 +673,17 @@ exports.opaline = onRequest(
         const snap = await SAVES_REF(site.id).orderBy("at", "desc").limit(MAX_SAVES).get();
         const saves = [];
         snap.forEach((d) => { const v = d.data(); saves.push({ id: d.id, name: v.name, at: v.at }); });
+        /* Only when it still says something the live site does not. A draft
+           that has caught up with what is published is not unfinished work,
+           it is a leftover, and offering to restore it would be noise. */
+        const kept = await readDraft(site.id);
+        const pending = kept && kept.json !== cur.json ? kept : null;
         res.status(200).json({
           ok: true,
           overlay: cur.doc,
           updatedAt: cur.updatedAt,
+          draft: pending ? pending.doc : null,
+          draftAt: pending ? pending.updatedAt : 0,
           saves: saves,
           reserves: await balanceOf(site),
           ledger: await recentLedger(site),
@@ -647,6 +691,23 @@ exports.opaline = onRequest(
              point of that guard. */
           currentIsSaved: !!cur.savedHash && cur.savedHash === sha256(cur.json)
         });
+        return;
+      }
+
+      /* ---- keep: her working copy, saved as she works, seen by nobody.
+         Free, and deliberately so: she is not buying a save, she is being
+         allowed to stop in the middle of a sentence. ---- */
+      if (action === "draft") {
+        const json = normaliseOverlay(body.overlay);
+        const at = Date.now();
+        await DRAFT_REF(site.id).set({ json: json, updatedAt: at });
+        res.status(200).json({ ok: true, at: at });
+        return;
+      }
+
+      if (action === "dropDraft") {
+        await DRAFT_REF(site.id).delete();
+        res.status(200).json({ ok: true });
         return;
       }
 
@@ -658,6 +719,8 @@ exports.opaline = onRequest(
            press it twice, or press it having undone everything she did
            since; neither should cost her anything. */
         if (before.json === json) {
+          /* Nothing to publish also means nothing left over to pick up. */
+          await DRAFT_REF(site.id).delete().catch(() => { });
           res.status(200).json({
             ok: true, updatedAt: before.updatedAt, spent: 0,
             reserves: await balanceOf(site),
@@ -667,6 +730,9 @@ exports.opaline = onRequest(
         }
 
         await OVERLAY_REF(site.id).set({ json: json, updatedAt: Date.now() }, { merge: true });
+        /* The working copy has arrived. Leaving one behind would offer her
+           yesterday's work back as though it were unfinished. */
+        await DRAFT_REF(site.id).delete().catch(() => { });
         const cur = await readOverlay(site.id);
         /* Charged after it is done, so a publish that failed costs nothing. */
         const left = await charge(site, FLAT.publish, describeChange(before.doc, cur.doc));
@@ -692,6 +758,8 @@ exports.opaline = onRequest(
         /* The live document remembers which save it matches, so "restore"
            can tell whether anything would be lost by restoring. */
         await OVERLAY_REF(site.id).set({ json: json, updatedAt: at, savedHash: hash }, { merge: true });
+        /* Saving publishes as well, so the working copy has arrived too. */
+        await DRAFT_REF(site.id).delete().catch(() => { });
 
         const all = await SAVES_REF(site.id).orderBy("at", "desc").get();
         const extra = [];
@@ -717,6 +785,9 @@ exports.opaline = onRequest(
         /* Restoring lands on a state that is itself already saved — it is
            this very save — so the guard stays satisfied afterwards. */
         await OVERLAY_REF(site.id).set({ json: v.json, updatedAt: Date.now(), savedHash: v.hash }, { merge: true });
+        /* The site has been wound back to a named version; an unfinished
+           copy of the version it was wound back from would be a trap. */
+        await DRAFT_REF(site.id).delete().catch(() => { });
         let out = EMPTY_OVERLAY;
         try { out = JSON.parse(v.json); } catch (e) { /* refused quietly */ }
         res.status(200).json({ ok: true, overlay: out, name: v.name, currentIsSaved: true });
@@ -770,7 +841,11 @@ exports.opaline = onRequest(
           outline: String((body.context && body.context.outline) || "").slice(0, 24000),
           /* What she had selected when she asked. Empty means the request is
              about the page rather than one thing on it. */
-          target: String((body.context && body.context.target) || "").slice(0, 300)
+          target: String((body.context && body.context.target) || "").slice(0, 300),
+          /* Set when the ask came from the panel rather than the bar: the
+             one element she is standing on, and the only one that may
+             change. */
+          only: String((body.context && body.context.only) || "").slice(0, 120)
         };
         const out = await askDeepSeek(prompt, context, key, site);
 
