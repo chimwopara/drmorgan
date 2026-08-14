@@ -189,6 +189,204 @@ function sameSecret(a, b) {
 }
 
 /* =====================================================================
+   What a self-hosted site costs the people carrying it
+   =====================================================================
+   Hosted, this question is already answered: reserves are bought up
+   front, every charge is written down, and running out is a thing the
+   editor talks about. None of that applies to a site Wopara built and
+   still pays for — Wopara's own billing account, Wopara's AI key, and
+   nobody counting.
+
+   So on a self-hosted install it is counted as it happens: what an ask
+   really spent in tokens, what a publish really spent in compute, and
+   how many visitors read the result. Nothing here estimates usage. The
+   only estimates are the unit prices, and they are in one block so a
+   real invoice can correct them in one edit.
+
+   When the running total passes what the host is willing to carry, the
+   owner is written to once, with figures taken from their own use.
+   Hosted sites never see any of this: they have a ledger instead.
+   ===================================================================== */
+
+/* IF THESE ARE WRONG, EVERY FIGURE IN THE LETTER IS WRONG. Set them from
+   the AI invoice and the cloud billing export before the first one goes
+   out. */
+const METER = {
+  aiPerToken: 0.00000042,        // blended in/out, per token
+  gbSecond: 0.0000025,
+  vcpuSecond: 0.000024,
+  perInvocation: 0.0000004,
+  writePer100k: 0.18,
+  readPer100k: 0.06,
+  egressPerGb: 0.15
+};
+
+/* What the site is charged against what it costs to serve, and what is
+   carried before anything is said. The multiple covers the half of the
+   work that appears on no invoice anywhere. */
+const CARRY_MARKUP = 5;
+const CARRY_ALLOWANCE_USD = 10;
+
+const USAGE_REF = (site) => db().collection("sites").doc(site).collection("state").doc("usage");
+
+function askCost(tokens) {
+  return Math.max(0, Number(tokens) || 0) * METER.aiPerToken;
+}
+
+/* One publish: the function that served it and the documents it wrote.
+   Small on its own, which is the honest thing to say about it. What a
+   publish really costs is mostly what comes after it. */
+function publishCost(ms, memoryGb) {
+  const seconds = Math.max(0.05, (Number(ms) || 0) / 1000);
+  return seconds * ((memoryGb || 0.5) * METER.gbSecond + METER.vcpuSecond) +
+    METER.perInvocation + 2 * (METER.writePer100k / 100000);
+}
+
+function serveCost() {
+  return (METER.readPer100k / 100000) + METER.perInvocation +
+    (12 / (1024 * 1024)) * METER.egressPerGb;
+}
+
+async function addUsage(site, fields) {
+  if (MODE === "hosted") return;
+  const inc = admin.firestore.FieldValue.increment;
+  const patch = { updatedAt: Date.now() };
+  Object.keys(fields).forEach((k) => { patch[k] = inc(fields[k]); });
+  try {
+    await USAGE_REF(site.id).set(patch, { merge: true });
+    const snap = await USAGE_REF(site.id).get();
+    if (!(snap.data() || {}).startedAt) {
+      await USAGE_REF(site.id).set({ startedAt: Date.now() }, { merge: true });
+    }
+  } catch (err) {
+    /* Never let the counting break the thing being counted. */
+    logger.warn("usage not recorded", { message: err.message });
+  }
+}
+
+/* Visits are counted in memory and written down every fiftieth one.
+   Counting each one into the database as it happened would add a write
+   to every visit, which costs more than the read it is counting: the
+   meter would be the expensive part. */
+let servedHere = 0;
+
+function noteServed(site) {
+  servedHere++;
+  if (servedHere < 50) return;
+  const batch = servedHere;
+  servedHere = 0;
+  addUsage(site, { serves: batch, serveUsd: serveCost() * batch }).catch(() => { });
+}
+
+/* Money, said the way a person says it. Most of these are fractions of a
+   cent, and a price printed as $0.000 reads as a mistake rather than as
+   a small number. */
+function money(usd) {
+  const n = Number(usd) || 0;
+  if (n >= 0.01) return "$" + n.toFixed(2);
+  if (n >= 0.0001) return (n * 100).toFixed(2) + " cents";
+  return "a fraction of a cent";
+}
+
+/* The letter, written from their own figures, sent once, and filed as
+   well as sent so there is a record of exactly what was said to somebody
+   about money. */
+async function allowanceLetter(site, to, siteName) {
+  let u = {};
+  try {
+    const snap = await USAGE_REF(site.id).get();
+    u = snap.exists ? (snap.data() || {}) : {};
+  } catch (err) { return false; }
+
+  const spent = Number(u.aiUsd || 0) + Number(u.runUsd || 0) + Number(u.chatUsd || 0);
+  const asks = Number(u.asks || 0);
+  const chats = Number(u.chats || 0);
+  const days = Math.max(1, (Date.now() - Number(u.startedAt || Date.now())) / (24 * 60 * 60 * 1000));
+  const publishes = Number(u.publishes || 0);
+
+  const perDollar = spent > 0 ? Math.max(1, Math.round(asks / (spent * CARRY_MARKUP))) : 0;
+  const monthUsd = (spent / days) * 30 * CARRY_MARKUP;
+  const yearUsd = Math.max(5, Math.ceil(((spent / days) * 365 * CARRY_MARKUP) / 5) * 5);
+  const running = Number(u.runUsd || 0) + Number(u.serveUsd || 0);
+  const perPublish = publishes > 0
+    ? (running / publishes) * CARRY_MARKUP
+    : publishCost(1200, 0.5) * CARRY_MARKUP;
+
+  const lines = [
+    "Hello,",
+    "",
+    "Everything the assistant has done on " + siteName + " so far has been on us, and that",
+    "free allowance is nearly used up. Nothing has stopped and nothing is about to stop",
+    "without warning. This is the note that comes first.",
+    "",
+    "What you have used, over " + Math.round(days) + " day" + (Math.round(days) === 1 ? "" : "s") + ":",
+    "",
+    "  Asks answered by the assistant: " + asks,
+    "  Times you have published: " + publishes
+  ].concat(chats ? [
+    "  Questions your visitors asked the site assistant: " + chats
+  ] : []).concat([
+    "",
+    "That works out at roughly " + perDollar + " assistant " +
+    (perDollar === 1 ? "request" : "requests") + " per dollar.",
+    "",
+    "Publishing costs something too, even though it feels as though it should not. Each one",
+    "runs on a server, and then every visitor who arrives afterwards reads the version it",
+    "made, which adds up quietly all month. At your rate that is " + money(perPublish) + " a publish,",
+    "and about " + money(monthUsd) + " a month for the running of the site altogether.",
+    "",
+    "At the rate you are going, a year of editing " + siteName + " comes to about $" + yearUsd + ".",
+    "",
+    "If you would like to carry on without interruption, an e-transfer of $" + yearUsd + " to",
+    "richardwopara@gmail.com covers the year. Smaller amounts are fine and simply last",
+    "proportionally.",
+    "",
+    "Everything that costs nothing to run stays free and always will: changing words,",
+    "colours, sizes and pictures, moving things about, adding pages, undo, saved versions.",
+    "Only the assistant and publishing are counted, because those are the two that are",
+    "genuinely bought from somebody else.",
+    "",
+    "Thank you for using Opaline. Keeping it cheap is the whole point of it.",
+    "",
+    "Richard",
+    "Wopara"
+  ]);
+
+  const sent = await mailOut(site, to, "Your Opaline allowance on " + siteName, lines);
+
+  try {
+    await USAGE_REF(site.id).set({
+      toldAllowance: true, toldAt: Date.now(), toldTo: to, toldSent: sent,
+      toldFigures: {
+        spentUsd: Number(spent.toFixed(6)), asks: asks, publishes: publishes,
+        days: Math.round(days), perDollar: perDollar, yearUsd: yearUsd,
+        perPublishUsd: Number(perPublish.toFixed(6))
+      }
+    }, { merge: true });
+  } catch (err) { /* the letter went; the note about it can fail */ }
+
+  logger.info("allowance letter", { site: site.id, sent: sent, spent: spent, asks: asks });
+  return sent;
+}
+
+/* Checked after anything that costs money. Once only, and never on a
+   hosted site, which has a ledger and a balance instead. */
+async function checkAllowance(site) {
+  if (MODE === "hosted") return;
+  let u = {};
+  try {
+    const snap = await USAGE_REF(site.id).get();
+    u = snap.exists ? (snap.data() || {}) : {};
+  } catch (err) { return; }
+  if (u.toldAllowance) return;
+  const spent = Number(u.aiUsd || 0) + Number(u.runUsd || 0) + Number(u.chatUsd || 0);
+  if (spent < CARRY_ALLOWANCE_USD) return;
+  const to = contactEmail(site);
+  if (!to) { logger.warn("allowance passed with no address to write to", { site: site.id }); return; }
+  await allowanceLetter(site, to, (site.doc && site.doc.name) || ORIGINS[0] || site.id);
+}
+
+/* =====================================================================
    Who may edit
    =====================================================================
    A site starts with one password and no names attached to it, which is
@@ -824,6 +1022,7 @@ exports.opaline = onRequest(
         const cur = await readOverlay(site.id);
         res.set("Cache-Control", "public, max-age=20, stale-while-revalidate=120");
         res.status(200).json({ ok: true, overlay: cur.doc, updatedAt: cur.updatedAt });
+        noteServed(site);
       } catch (err) {
         logger.error("overlay read failed", { site: site.id, message: err.message });
         /* An empty overlay is the untouched site, which is the right thing
@@ -1273,6 +1472,7 @@ exports.opaline = onRequest(
       }
 
       if (action === "publish") {
+        const began = Date.now();
         const json = normaliseOverlay(body.overlay);
         const before = await readOverlay(site.id);
 
@@ -1305,6 +1505,9 @@ exports.opaline = onRequest(
           reserves: left,
           currentIsSaved: !!cur.savedHash && cur.savedHash === sha256(cur.json)
         });
+        /* Counted only where nobody is being charged for it already. */
+        await addUsage(site, { runUsd: publishCost(Date.now() - began, 0.5), publishes: 1 });
+        await checkAllowance(site);
         return;
       }
 
@@ -1419,6 +1622,10 @@ exports.opaline = onRequest(
           ok: true, reply: out.reply, ops: out.ops,
           spent: cost, reserves: now
         });
+        /* Counted after the answer has gone, so the counting can never be
+           the reason an ask was slow or failed. */
+        await addUsage(site, { aiUsd: askCost(out.tokens), asks: 1, tokens: out.tokens });
+        await checkAllowance(site);
         return;
       }
 
