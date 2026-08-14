@@ -807,6 +807,10 @@ exports.opaline = onRequest(
       res.set("Vary", "Origin");
       res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
       res.set("Access-Control-Allow-Headers", "Content-Type");
+      /* A renewed session rides back on a header rather than inside the
+         answer, so no action has to know about sessions in order to hand
+         one on. A browser cannot read a header it was not told it may. */
+      res.set("Access-Control-Expose-Headers", "X-Opaline-Session");
       res.set("Access-Control-Max-Age", "3600");
     }
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
@@ -1026,8 +1030,34 @@ exports.opaline = onRequest(
       /* Everything past this point changes the site. */
       const me = await tokenWho(body.token, site);
       if (!me) {
+        /* Logged, because until now this left no trace at all: a session
+           that ran out mid-afternoon looked, from here, exactly like a
+           quiet day. The one thing worth knowing is which request it
+           happened on, since it is nearly always the last one somebody
+           makes rather than the first. */
+        logger.warn("editing session refused", { site: site.id, action: action, ip: ip });
         res.status(401).json({ error: "Your editing session has ended. Please sign in again." });
         return;
+      }
+
+      /* A sliding fortnight.
+
+         A session lasted fourteen days from the moment it was opened and
+         then stopped, wherever the person holding it happened to be. In
+         practice that is at the end of an afternoon's work, because the
+         request most likely to be the first one after the deadline is the
+         last one somebody makes — which is Publish, and being timed out
+         while publishing is exactly how it gets reported.
+
+         So a token more than halfway through its life is quietly replaced
+         on the next request. Somebody who edits their own site every week
+         or two is never signed out; somebody who has not been near it for
+         a fortnight still is, which is the point of having a session at
+         all. */
+      const endsAt = Number(String(body.token || "").split(".")[0]) || 0;
+      if (endsAt && (endsAt - Date.now()) < (SESSION_DAYS / 2) * 24 * 60 * 60 * 1000) {
+        const fresh = await mintToken(site, me.email);
+        if (fresh) res.set("X-Opaline-Session", fresh.token + "|" + fresh.expires);
       }
 
       /* ---- who can get in, listed ---- */

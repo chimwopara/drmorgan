@@ -125,13 +125,48 @@
     t._away = setTimeout(function () { t.className = bad ? "bad" : ""; }, bad ? 6000 : 2800);
   }
 
+  /* A session that ended while she was still working.
+
+     It said "your editing session has ended, please sign in again" and left
+     it there, which on the day it happens is the least useful sentence in
+     the editor: she is standing in front of an afternoon's work with no way
+     to send it. So the box comes back on its own, and the sentence says the
+     thing that is actually true now, which is that her work is kept and
+     will be waiting on the other side of it. */
+  var toldEnded = false;
+
+  function sessionEnded() {
+    if (toldEnded) return;
+    toldEnded = true;
+    toast("Your session had ended, so that did not go through. Nothing is lost: sign in again and it is all still here.", true);
+    gate();
+  }
+
   function post(payload) {
     return fetch(ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(Object.assign({ token: token, site: SITE }, payload))
     }).then(function (r) {
+      /* Handed back on any request made in the second half of a session,
+         so somebody who edits her site every week or two is never signed
+         out mid-sentence. */
+      var fresh = r.headers.get("X-Opaline-Session");
+      if (fresh) {
+        var cut = fresh.lastIndexOf("|");
+        if (cut > 0) {
+          token = fresh.slice(0, cut);
+          var who = null;
+          try { who = localStorage.getItem(TOKEN_KEY + ":who"); } catch (e) { }
+          try {
+            localStorage.setItem(TOKEN_KEY, JSON.stringify({
+              token: token, expires: Number(fresh.slice(cut + 1)), who: who
+            }));
+          } catch (e) { }
+        }
+      }
       return r.json().then(function (data) {
+        if (r.status === 401 && booted) sessionEnded();
         if (!r.ok) throw Object.assign(new Error(data.error || "That did not work."), { status: r.status, data: data });
         return data;
       });
@@ -3306,7 +3341,19 @@
      ------------------------------------------------------------------ */
 
   function boot() {
-    if (booted) return;
+    /* Signing in again in the middle of the work she was already doing,
+       because the session ran out under her. Nothing needs rebuilding: the
+       page, the history and the version she is standing in are all still
+       here. What needs doing is saving the work the dead session could
+       not. */
+    if (booted) {
+      toldEnded = false;
+      draftState = "";
+      refreshBar();
+      queueDraft();
+      toast("Signed in again. Everything is where you left it.");
+      return;
+    }
     booted = true;
     window.OPALINE_EDITING = true;
     document.body.classList.add("opl-editing");
