@@ -2003,13 +2003,59 @@
     }, true);   // capture, so it runs before the assistant's own handler
   }
 
+  /* ------------------------------------------------------------ book launch
+     One moment decides what the book's pages say: before it, a locked button
+     and a countdown; from it, a live link to Lulu. The moment is midnight at
+     the start of 1 November 2026 in US Central time. Daylight saving does not
+     end until 2 a.m. that morning, so the offset is still -05:00 (CDT).
+
+     This is a courtesy, not a lock: the page is static, so the link sits in
+     the markup (data-launch-href) and the clock is the visitor's own. Markup
+     opts in with data-launch-pre / data-launch-post (shown before / after),
+     data-launch-buy (the button, unlocked at launch) and data-launch-count. */
+  function launch() {
+    var AT = Date.parse("2026-11-01T00:00:00-05:00");
+    var count = $$("[data-launch-count]"), buys = $$("[data-launch-buy]");
+    if (!count.length && !buys.length) return;
+    var timer;
+
+    function pad(n) { return n < 10 ? "0" + n : "" + n; }
+    function set(box, u, v) { var e = $("[data-u=" + u + "]", box); if (e && e.textContent !== v) e.textContent = v; }
+
+    function go() {
+      clearInterval(timer);
+      $$("[data-launch-pre]").forEach(function (e) { e.hidden = true; });
+      $$("[data-launch-post]").forEach(function (e) { e.hidden = false; });
+      buys.forEach(function (a) {
+        a.href = a.getAttribute("data-launch-href");
+        a.target = "_blank"; a.rel = "noopener";
+        a.removeAttribute("aria-disabled"); a.classList.remove("is-locked");
+      });
+    }
+
+    function tick() {
+      var ms = AT - Date.now();
+      if (ms <= 0) { go(); return; }
+      var t = Math.floor(ms / 1000);
+      count.forEach(function (b) {
+        set(b, "d", "" + Math.floor(t / 86400));
+        set(b, "h", pad(Math.floor(t % 86400 / 3600)));
+        set(b, "m", pad(Math.floor(t % 3600 / 60)));
+        set(b, "s", pad(t % 60));
+      });
+    }
+
+    tick();
+    if (AT - Date.now() > 0) timer = setInterval(tick, 1000);
+  }
+
   function year() { $$("[data-year]").forEach(function (e) { e.textContent = new Date().getFullYear(); }); }
 
   function boot() {
     theme(); bootClear(); monogram(); header(); menu(); curtain(); reveal(); hero(); ribbon(); ambient(); askClearance(); railNav(); glass(); rocket();
     tilt(); magnetic(); statement(); panels(); spine(); counters();
     clicks(); parallax(); blueprint(); heroDepth();
-    accordion(); sidenav(); rails(); selects(); prefill(); mailform(); booklist(); promo(); assistant(); scrollState(); year();
+    accordion(); sidenav(); rails(); selects(); prefill(); mailform(); booklist(); promo(); assistant(); scrollState(); year(); launch();
   }
 
   document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", boot) : boot();

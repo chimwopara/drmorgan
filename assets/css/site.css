@@ -3918,6 +3918,31 @@ html.is-scrolling.is-menu-open .header { opacity: 1; }
   font-family: var(--font-mono); font-size: .6rem; letter-spacing: .2em; text-transform: uppercase;
 }
 
+/* The book before launch: a button that cannot be pressed yet, and the clock
+   that says when it can. The same markup turns live at the launch moment (see
+   launch() in site.js), so nothing here is a separate "coming soon" design. */
+[data-launch-pre][hidden], [data-launch-post][hidden] { display: none !important; }
+.btn.is-locked { pointer-events: none; cursor: default; color: var(--fg-dim); background: transparent; border-color: var(--hairline); }
+.btn.is-locked::before { display: none; }
+.btn.is-locked .ico { display: none; }
+.launch { display: grid; justify-items: start; gap: 1.1rem; }
+.countdown { display: grid; gap: .7rem; }
+.countdown__cells { display: flex; flex-wrap: wrap; gap: clamp(.55rem, 1.6vw, .9rem); }
+.countdown__cell {
+  display: grid; justify-items: center; gap: .3rem;
+  min-width: 4.1rem; padding: .8rem .6rem .65rem;
+  border: 1px solid var(--hairline); border-radius: var(--r-sm);
+}
+.countdown__cell b {
+  font-family: var(--font-mono); font-weight: 500; font-size: clamp(1.35rem, 2.6vw, 1.85rem);
+  line-height: 1; letter-spacing: .02em; color: var(--fg); font-variant-numeric: tabular-nums;
+}
+.countdown__cell i {
+  font-style: normal; font-family: var(--font-mono); font-size: .56rem; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--fg-dim);
+}
+.countdown__cap { font-size: .86rem; line-height: 1.5; color: var(--fg-dim); }
+
 /* What a form becomes once it has done its one job. */
 .joined {
   display: flex; align-items: flex-start; gap: .9rem;
